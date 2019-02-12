@@ -6,6 +6,6 @@
     "password": {"ENV": "DB_PASSWORD"},
     "host": {"ENV": "DB_HOST"},
     "database": {"ENV": "DB_NAME"},
-    "schema": "clearn"
+    "port": {"ENV": "DB_port"}
   }
 }

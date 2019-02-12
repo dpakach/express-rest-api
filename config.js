@@ -5,6 +5,7 @@ const env = process.env.NODE_ENV || 'dev';
 const dev = {
   app: {
     port: parseInt(process.env.PORT, 10) || 3000,
+    secret: 'secret',
   },
   db: {
     database: process.env.DB_NAME || 'clearn',
