@@ -1,12 +1,15 @@
 /**
  * Handler for user related features
+ *
+ * @TODO use tokens to verify only the verified users can view and modify user data
+ *
  */
 
 // Require dependencies
 const uuid = require('uuid/v4');
 
-const {query} = require('../db');
-const {hash, sanitize} = require('../utils');
+const { query } = require('../db');
+const { hash, sanitize } = require('../utils');
 
 // create user handler object
 const userHandler = {};
@@ -62,10 +65,9 @@ userHandler.createUser = (data, callback) => {
   const id = uuid();
   password = hash(password);
   if (username && password && email && id) {
-    const queryText =
-      'INSERT INTO "users"("id", "username", "password", "email") VALUES($1, $2, $3, $4)';
+    const queryText = 'INSERT INTO "users"("id", "username", "password", "email") VALUES($1, $2, $3, $4)';
     const values = [id, username, password, email];
-    query(queryText, values, err => {
+    query(queryText, values, (err) => {
       if (!err) {
         callback(200);
       } else {
@@ -88,12 +90,11 @@ const validatePassword = (username, userPassword, callback) => {
   let password = sanitize(userPassword, 'string', 6);
   password = hash(password);
   if (username && password) {
-    const queryText =
-      'SELECT id FROM users WHERE username LIKE $1 AND password LIKE $2';
+    const queryText = 'SELECT id FROM users WHERE username LIKE $1 AND password LIKE $2';
     const values = [username, password];
     query(queryText, values, (err, response) => {
       if (!err && response.rows.length > 0) {
-        callback(false);
+        callback(false, response.rows[0].id);
       } else {
         callback('Could not validate given user id and password');
       }
@@ -120,10 +121,9 @@ userHandler.changePassword = (id, data, callback) => {
           password = hash(password);
           oldPassword = hash(oldPassword);
           if (!err) {
-            const queryText =
-              'UPDATE users SET password = $1 WHERE id like $2 AND password like $3';
+            const queryText = 'UPDATE users SET password = $1 WHERE id like $2 AND password like $3';
             const values = [password, id, oldPassword];
-            query(queryText, values, err => {
+            query(queryText, values, (err) => {
               if (!err) {
                 callback(200);
               } else {
@@ -144,6 +144,7 @@ userHandler.changePassword = (id, data, callback) => {
 };
 
 userHandler.getUserById = getUserById;
+userHandler.validatePassword = validatePassword;
 
 // Export the controller
 module.exports = userHandler;
