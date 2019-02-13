@@ -12,6 +12,28 @@ const { hash, sanitize } = require('../utils');
 const userHandler = {};
 
 /**
+ * Handler for returning one user
+ *
+ * @param string id
+ * @param function callback(err, status, data)
+ */
+const getUserById = (id, callback) => {
+  if (id) {
+    const queryText = 'SELECT id, username, email FROM users where id like $1';
+    const values = [id];
+    query(queryText, values, (err, response) => {
+      if (!err && callback) {
+        callback(false, 200, response.rows[0].username);
+      } else {
+        callback('Unable to find the user', 404);
+      }
+    });
+  } else {
+    callback('Missing required values', 400);
+  }
+};
+
+/**
  * Handler for creating user
  *
  * @param object data, an object containing user data
@@ -30,29 +52,10 @@ userHandler.createUser = (data, callback) => {
       if (!err) {
         callback(false, 200);
       } else {
-        callback('Error writing in database, The user might already exist!', 400);
-      }
-    });
-  } else {
-    callback('Missing required values', 400);
-  }
-};
-
-/**
- * Handler for returning one user
- *
- * @param string id
- * @param function callback(err, status, data)
- */
-userHandler.getUserById = (id, callback) => {
-  if (id) {
-    const queryText = 'SELECT id, username, email FROM users where id like $1';
-    const values = [id];
-    query(queryText, values, (err, response) => {
-      if (!err && callback) {
-        callback(false, 200, response.rows[0]);
-      } else {
-        callback('Unable to find the user', 404);
+        callback(
+          'Error writing in database, The user might already exist!',
+          400,
+        );
       }
     });
   } else {
@@ -63,16 +66,16 @@ userHandler.getUserById = (id, callback) => {
 /**
  * validate password of user
  *
- * @param String id
+ * @param String username
  * @param String userPassword
  * @param function callback
  */
-const validatePassword = (id, userPassword, callback) => {
+const validatePassword = (username, userPassword, callback) => {
   let password = sanitize(userPassword, 'string', 6);
-  password = hash(userPassword);
-  if (id && password) {
-    const queryText = 'SELECT id FROM users WHERE password LIKE $1 AND id LIKE $2';
-    const values = [password, id];
+  password = hash(password);
+  if (username && password) {
+    const queryText = 'SELECT id FROM users WHERE username LIKE $1 AND password LIKE $2';
+    const values = [username, password];
     query(queryText, values, (err, response) => {
       if (!err && response.rows.length > 0) {
         callback(false);
@@ -95,27 +98,35 @@ userHandler.changePassword = (id, data, callback) => {
   let password = sanitize(data.newPassword, 'string', 6);
   let oldPassword = sanitize(data.password, 'string', 6);
   if (id && password && oldPassword) {
-    validatePassword(id, oldPassword, (err) => {
-      password = hash(password);
-      oldPassword = hash(oldPassword);
+    getUserById(id, (err, status, user) => {
       if (!err) {
-        const queryText = 'UPDATE users SET password = $1 WHERE id like $2 AND password like $3';
-        const values = [password, id, oldPassword];
-        query(queryText, values, (err) => {
+        validatePassword(user, oldPassword, (err) => {
+          password = hash(password);
+          oldPassword = hash(oldPassword);
           if (!err) {
-            callback(false);
+            const queryText = 'UPDATE users SET password = $1 WHERE id like $2 AND password like $3';
+            const values = [password, id, oldPassword];
+            query(queryText, values, (err) => {
+              if (!err) {
+                callback(false);
+              } else {
+                callback('Could not change your password', 404);
+              }
+            });
           } else {
-            callback('Could not change your password', 404);
+            callback('Failed to validate given password', 403);
           }
         });
       } else {
-        callback('Failed to validate given password', 403);
+        callback('Could not find the user');
       }
     });
   } else {
     callback('Missing required values', 400);
   }
 };
+
+userHandler.getUserById = getUserById;
 
 // Export the controller
 module.exports = userHandler;
