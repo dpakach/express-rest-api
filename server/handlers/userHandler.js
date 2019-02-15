@@ -12,32 +12,48 @@ const { hash, sanitize } = require('../utils');
 const userHandler = {};
 
 /**
- * Handler for returning one user
+ * function go get user info from the id
  *
  * @param string id
- * @param function callback(err, status, data)
+ * @param function callback(error, data)
  */
 const getUserById = (id, callback) => {
   if (id) {
     const queryText = 'SELECT id, username, email FROM users where id like $1';
     const values = [id];
     query(queryText, values, (err, response) => {
-      if (!err && callback) {
-        callback(false, 200, response.rows[0].username);
+      if (!err && response.rows[0]) {
+        callback(false, response.rows[0]);
       } else {
-        callback('Unable to find the user', 404);
+        callback('Unable to find user.');
       }
     });
   } else {
-    callback('Missing required values', 400);
+    callback('Missing required values.');
   }
+};
+
+/**
+ * Handler for returning one user
+ *
+ * @param string id
+ * @param function callback(status, data)
+ */
+userHandler.getUserHandler = (id, callback) => {
+  getUserById(id, (err, user) => {
+    if (!err) {
+      callback(200, user);
+    } else {
+      callback(404, { Error: err });
+    }
+  });
 };
 
 /**
  * Handler for creating user
  *
  * @param object data, an object containing user data
- * @param function callback(err, status)
+ * @param function callback(status, data)
  */
 userHandler.createUser = (data, callback) => {
   const username = sanitize(data.username, 'string', 6);
@@ -50,16 +66,13 @@ userHandler.createUser = (data, callback) => {
     const values = [id, username, password, email];
     query(queryText, values, (err) => {
       if (!err) {
-        callback(false, 200);
+        callback(200);
       } else {
-        callback(
-          'Error writing in database, The user might already exist!',
-          400,
-        );
+        callback(400, { Error: 'The user might already exist!' });
       }
     });
   } else {
-    callback('Missing required values', 400);
+    callback(400, { Error: 'Missing required values.' });
   }
 };
 
@@ -84,7 +97,7 @@ const validatePassword = (username, userPassword, callback) => {
       }
     });
   } else {
-    callback('Missing required values');
+    callback('Missing required values.');
   }
 };
 
@@ -97,10 +110,11 @@ const validatePassword = (username, userPassword, callback) => {
 userHandler.changePassword = (id, data, callback) => {
   let password = sanitize(data.newPassword, 'string', 6);
   let oldPassword = sanitize(data.password, 'string', 6);
+  console.log(id, password, oldPassword);
   if (id && password && oldPassword) {
-    getUserById(id, (err, status, user) => {
+    getUserById(id, (err, user) => {
       if (!err) {
-        validatePassword(user, oldPassword, (err) => {
+        validatePassword(user.username, oldPassword, (err) => {
           password = hash(password);
           oldPassword = hash(oldPassword);
           if (!err) {
@@ -108,21 +122,21 @@ userHandler.changePassword = (id, data, callback) => {
             const values = [password, id, oldPassword];
             query(queryText, values, (err) => {
               if (!err) {
-                callback(false);
+                callback(200);
               } else {
-                callback('Could not change your password', 404);
+                callback(500, { Error: 'Could not change your password' });
               }
             });
           } else {
-            callback('Failed to validate given password', 403);
+            callback(403, { Error: 'Failed to validate given password' });
           }
         });
       } else {
-        callback('Could not find the user');
+        callback(404, { Error: 'Could not find the user' });
       }
     });
   } else {
-    callback('Missing required values', 400);
+    callback(400, { Error: 'Missing required values.' });
   }
 };
 
