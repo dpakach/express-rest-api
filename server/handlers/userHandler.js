@@ -1,5 +1,8 @@
 /**
  * Handler for user related features
+ *
+ * @TODO use tokens to verify only the verified users can view and modify user data
+ *
  */
 
 // Require dependencies
@@ -91,7 +94,7 @@ const validatePassword = (username, userPassword, callback) => {
     const values = [username, password];
     query(queryText, values, (err, response) => {
       if (!err && response.rows.length > 0) {
-        callback(false);
+        callback(false, response.rows[0].id);
       } else {
         callback('Could not validate given user id and password');
       }
@@ -141,6 +144,7 @@ userHandler.changePassword = (id, data, callback) => {
 };
 
 userHandler.getUserById = getUserById;
+userHandler.validatePassword = validatePassword;
 
 // Export the controller
 module.exports = userHandler;
