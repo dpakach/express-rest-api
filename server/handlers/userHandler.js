@@ -113,7 +113,6 @@ const validatePassword = (username, userPassword, callback) => {
 userHandler.changePassword = (id, data, callback) => {
   let password = sanitize(data.newPassword, 'string', 6);
   let oldPassword = sanitize(data.password, 'string', 6);
-  console.log(id, password, oldPassword);
   if (id && password && oldPassword) {
     getUserById(id, (err, user) => {
       if (!err) {
