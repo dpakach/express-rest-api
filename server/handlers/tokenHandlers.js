@@ -52,7 +52,7 @@ tokenHandler.createToken = (data, callback) => {
         const values = [id, username, userId, expires];
         query(queryText, values, (err) => {
           if (!err) {
-            getTokenById(id, (err, status, token) => {
+            getTokenById(id, (err, token) => {
               if (!err) {
                 callback(200, token);
               } else {
@@ -149,13 +149,20 @@ tokenHandler.removeToken = (id, callback) => {
   }
 };
 
+/**
+ * function for verifying the token is valid
+ *
+ * @param String id
+ * @param String username
+ * @param function callback(err)
+ */
 const verifyToken = (id, username, callback) => {
   const user = sanitize(username, 'string', 6);
   if (user && id) {
     const queryText = 'SELECT * FROM tokens WHERE id like $1 AND username like $2';
     const values = [id, user];
     query(queryText, values, (err, result) => {
-      if (!err && result.rows[0].length > 0) {
+      if (!err && result.rows.length > 0) {
         if (result.rows[0].expires > Date.now()) {
           callback(false);
         } else {
@@ -170,9 +177,41 @@ const verifyToken = (id, username, callback) => {
   }
 };
 
+/**
+ * function for authenticating the user
+ *
+ * @param req
+ * @param res
+ * @param function next
+ */
+const authenticate = (req, res, next) => {
+  const requestToken = req.headers.token;
+  if (requestToken) {
+    getTokenById(requestToken, (err, token) => {
+      if (!err && token) {
+        verifyToken(requestToken, token.username, (err) => {
+          if (!err) {
+            req.user = token.username;
+            req.user_id = token.user_id;
+            next();
+          } else {
+            res.status(403).json({ Error: err }).end();
+          }
+        });
+      } else {
+        res.status(403).end();
+      }
+    });
+  } else {
+    res.status(403).end();
+  }
+};
+
+
 // Add local functions for export
 tokenHandler.verifyToken = verifyToken;
 tokenHandler.getTokenById = getTokenById;
+tokenHandler.authenticate = authenticate;
 
 // Export the controller
 module.exports = tokenHandler;
