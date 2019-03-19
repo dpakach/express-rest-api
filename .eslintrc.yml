@@ -4,3 +4,6 @@ rules:
   no-console: off
   no-shadow: off
   valid-typeof: off
+  func-names: off
+  global-require: off
+  import/no-dynamic-require: off
