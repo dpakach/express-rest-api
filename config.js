@@ -8,17 +8,31 @@ const dev = {
     secret: 'secret',
   },
   db: {
-    database: process.env.DB_NAME || 'clearn',
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT, 10) || 5432,
-    user: process.env.DB_USER || 'deepak',
-    password: process.env.DB_PASSWORD || 'password',
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT, 10),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+  },
+};
+
+const test = {
+  app: {
+    port: parseInt(process.env.TEST_PORT, 10) || 4000,
+    secret: 'secret',
+  },
+  db: {
+    database: process.env.DB_TEST_NAME,
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT, 10),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
   },
 };
 
 const config = {
   dev,
-  test: dev,
+  test,
 };
 
 module.exports = config[env];

@@ -16,12 +16,17 @@ addons:
     - postgresql-10
     - postgresql-client-10
 
+env:
+  global:
+  - PGPORT=5432
+
 install:
   - npm install
 
 before_script:
-  - psql -c 'create database ci_test;' -U postgres
+  - psql -c 'create database clearn_test;' -U postgres
+  - db-migrate up -e test
 
 script:
-  - npm run test
   - npm run lint
+  - npm run test
