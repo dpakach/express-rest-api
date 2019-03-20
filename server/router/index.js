@@ -12,6 +12,7 @@ const { authenticate } = require('../handlers/tokenHandlers');
 router.get('/ping', (req, res) => {
   res.send('Ping');
   res.sendStatus(200);
+  res.end();
 });
 
 router.post('/user', postUser);

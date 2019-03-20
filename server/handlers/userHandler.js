@@ -37,6 +37,28 @@ const getUserById = (id, callback) => {
 };
 
 /**
+ * function go get user info from the username
+ *
+ * @param string username
+ * @param function callback(error, data)
+ */
+const getUserByUsername = (username, callback) => {
+  if (username) {
+    const queryText = 'SELECT id, username, email FROM users where username like $1';
+    const values = [username];
+    query(queryText, values, (err, response) => {
+      if (!err && response.rows[0]) {
+        callback(false, response.rows[0]);
+      } else {
+        callback('Unable to find user.');
+      }
+    });
+  } else {
+    callback('Missing required values.');
+  }
+};
+
+/**
  * Handler for returning one user
  *
  * @param string id
@@ -143,6 +165,7 @@ userHandler.changePassword = (id, data, callback) => {
 };
 
 userHandler.getUserById = getUserById;
+userHandler.getUserByUsername = getUserByUsername;
 userHandler.validatePassword = validatePassword;
 
 // Export the controller

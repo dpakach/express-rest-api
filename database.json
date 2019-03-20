@@ -7,5 +7,13 @@
     "host": {"ENV": "DB_HOST"},
     "database": {"ENV": "DB_NAME"},
     "port": {"ENV": "DB_port"}
+  },
+  "test": {
+    "driver": "pg",
+    "user": {"ENV": "DB_USER"},
+    "password": {"ENV": "DB_PASSWORD"},
+    "host": {"ENV": "DB_HOST"},
+    "database": {"ENV": "DB_TEST_NAME"},
+    "port": {"ENV": "DB_port"}
   }
 }
