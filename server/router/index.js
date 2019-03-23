@@ -1,6 +1,6 @@
-const express = require('express');
+const { Router } = require('express');
 
-const router = express.Router();
+const router = Router();
 
 const { postUser, getUser, postUserPassword } = require('../controllers/userControllers');
 const {
@@ -10,8 +10,7 @@ const {
 const { authenticate } = require('../handlers/tokenHandlers');
 
 router.get('/ping', (req, res) => {
-  res.send('Ping');
-  res.sendStatus(200);
+  res.status(200).end();
 });
 
 router.post('/user', postUser);

@@ -8,6 +8,6 @@ const config = require('./config');
 const { port } = config.app;
 
 // start the server and listen in given port
-http.createServer(app).listen(port, () => {
+module.exports = http.createServer(app).listen(port, () => {
   console.log(`Started Server in port ${port}`);
 });
