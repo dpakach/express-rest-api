@@ -91,9 +91,8 @@ userHandler.createUser = (data, callback) => {
     const values = [id, username, password, email];
     query(queryText, values, (err) => {
       if (!err) {
-        callback(200);
+        callback(200, false);
       } else {
-        console.log(err);
         callback(400, { Error: 'Error writing in database!' });
       }
     });

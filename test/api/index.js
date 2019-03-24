@@ -242,7 +242,7 @@ describe('User routes test', () => {
         .send(usersFixtures.testuser)
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body).to.be.eql('');
+          expect(res.body).to.be.eqls(false);
           getUserByUsername(usersFixtures.testuser.username, (err, data) => {
             if (!err) {
               expect(data.username).to.be.eql(usersFixtures.testuser.username);
