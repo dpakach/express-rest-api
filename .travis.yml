@@ -22,6 +22,7 @@ env:
 
 install:
   - npm install
+  - npm install -g codecov
 
 before_script:
   - psql -c 'create database clearn_test;' -U postgres
@@ -30,3 +31,4 @@ before_script:
 script:
   - npm run lint
   - npm run test
+  - codecov

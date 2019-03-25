@@ -4,7 +4,7 @@
   "description": "Movie Recommendation platform",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test",
+    "test": "nyc mocha test",
     "test:unit": "NODE_ENV=test mocha test/unit",
     "test:api": "NODE_ENV=test mocha test/api",
     "lint": "./node_modules/.bin/eslint .",
@@ -22,8 +22,10 @@
     "db-migrate-pg": "^0.5.0",
     "dotenv": "^7.0.0",
     "express": "^4.16.4",
+    "istanbul": "^0.4.5",
     "mocha": "^6.0.2",
     "morgan": "^1.9.1",
+    "nyc": "^13.3.0",
     "pg": "^7.9.0",
     "pg-hstore": "^2.3.2",
     "uuid": "^3.3.2"
