@@ -2,6 +2,8 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 
+const uuid = require('uuid/v4');
+
 const server = require('../../start');
 const { query } = require('../../server/db');
 const {
@@ -311,6 +313,52 @@ describe('User routes test', () => {
           expect(res.body).to.be.eql({});
           done();
         });
+    });
+
+    it('It should not be possible to get user with a token that doesnot exist', (done) => {
+      chai
+        .request(server)
+        .get(`/user/${userData.testuser.user_id}`)
+        .set('token', 'i_dont_exist')
+        .end((err, res) => {
+          expect(res.status).to.be.eql(403);
+          expect(res.body).to.be.eql({});
+          done();
+        });
+    });
+
+    it('It should not be possible to get user with a expired token', (done) => {
+      const queryText = 'insert into "tokens"("id", "user_id", "username", "expires") values($1, $2, $3, $4);';
+      const values = [
+        uuid(),
+        userData.testuser.user_id,
+        userData.testuser.username,
+        Date.now() - 1,
+      ];
+      query(queryText, values, (err) => {
+        if (!err) {
+          const queryText = `select id, username from tokens where username like '${userData.testuser.username}' and cast (expires as bigint) < ${Date.now()}`;
+          query(queryText, (err, data) => {
+            if (!err) {
+              chai
+                .request(server)
+                .get(`/user/${userData.testuser.user_id}`)
+                .set('token', data.rows[0].id)
+                .end((err, res) => {
+                  expect(res.status).to.be.eql(403);
+                  expect(res.body.username).to.be.eql(undefined);
+                  expect(res.body.email).to.be.eql(undefined);
+                  expect(res.body.id).to.be.eql(undefined);
+                  done();
+                });
+            } else {
+              done(err);
+            }
+          });
+        } else {
+          done(err);
+        }
+      });
     });
   });
 });

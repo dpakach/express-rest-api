@@ -4,7 +4,8 @@
   "description": "Movie Recommendation platform",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha test",
+    "test": "mocha test",
+    "test:coverage": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec",
     "test:unit": "NODE_ENV=test mocha test/unit",
     "test:api": "NODE_ENV=test mocha test/api",
     "lint": "./node_modules/.bin/eslint .",
