@@ -28,8 +28,8 @@ const dev = getBase();
 
 // config object for 'test' environment
 const test = getBase();
-test.app.port = parseInt(process.env.TEST_PORT, 10) || 4000
-test.db.database = process.env.DB_TEST_NAME
+test.app.port = parseInt(process.env.TEST_PORT, 10) || 4000;
+test.db.database = process.env.DB_TEST_NAME;
 
 // Get config objects for all enviroments
 const configs = {
