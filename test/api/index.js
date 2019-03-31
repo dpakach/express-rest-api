@@ -219,6 +219,18 @@ describe('Token routes test', () => {
           );
         });
     });
+
+    it('It should not be possible to remove token that doesnot exist', (done) => {
+      chai
+        .request(server)
+        .delete('/token/i_dont_exist')
+        .set('token', userData.testuser.id)
+        .end((err, res) => {
+          expect(res.status).to.be.eql(404);
+          expect(res.body.Error).not.to.be.eql(undefined);
+          done();
+        });
+    });
   });
 });
 
