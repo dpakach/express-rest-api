@@ -1,38 +1,41 @@
+// Read env variables
 require('dotenv').config();
 
+// Get the current environment ('dev' | 'test')
 const env = process.env.NODE_ENV || 'dev';
 
-const dev = {
-  app: {
-    port: parseInt(process.env.PORT, 10) || 3000,
-    secret: 'secret',
-  },
-  db: {
-    database: process.env.DB_NAME,
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT, 10),
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-  },
-};
+// Base config object
+// for new config object extend from this
+function getBase() {
+  const base = {
+    app: {
+      port: parseInt(process.env.PORT, 10) || 3000,
+      secret: 'secret',
+    },
+    db: {
+      database: process.env.DB_NAME,
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT, 10),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+    },
+  };
+  return base;
+}
 
-const test = {
-  app: {
-    port: parseInt(process.env.TEST_PORT, 10) || 4000,
-    secret: 'secret',
-  },
-  db: {
-    database: process.env.DB_TEST_NAME,
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT, 10),
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-  },
-};
+// config object for 'development' environment
+const dev = getBase();
 
-const config = {
+// config object for 'test' environment
+const test = getBase();
+test.app.port = parseInt(process.env.TEST_PORT, 10) || 4000
+test.db.database = process.env.DB_TEST_NAME
+
+// Get config objects for all enviroments
+const configs = {
   dev,
   test,
 };
 
-module.exports = config[env];
+// Export the config according to current environment
+module.exports = configs[env];
