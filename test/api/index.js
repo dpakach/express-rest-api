@@ -16,6 +16,7 @@ const {
   verifyToken,
   getTokenById,
 } = require('../../server/handlers/tokenHandlers');
+
 const usersFixtures = require('../fixtures/users.json');
 
 const { expect } = chai;
@@ -57,7 +58,7 @@ describe('Token routes test', () => {
   });
 
   afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens;';
+    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
     query(queryText, (err) => {
       if (!err) {
         done();
@@ -256,7 +257,7 @@ describe('User routes test', () => {
 
 
   afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens;';
+    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
     query(queryText, (err) => {
       if (!err) {
         done();
@@ -396,7 +397,7 @@ describe('Password routes test', () => {
   });
 
   afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens;';
+    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
     query(queryText, (err) => {
       if (!err) {
         done();
@@ -514,6 +515,67 @@ describe('Password routes test', () => {
               done(new Error('Could not validate the password'));
             }
           });
+        });
+    });
+  });
+});
+
+describe('Post routes test', () => {
+  userData = {};
+  beforeEach((done) => {
+    createUser(usersFixtures.testuser, (status, err) => {
+      if (!err) {
+        createToken(usersFixtures.testuser, (status, data) => {
+          if (status === 200) {
+            userData.testuser = data;
+            done();
+          } else {
+            done(new Error(err.Error));
+          }
+        });
+      } else {
+        done(new Error(err.Error));
+      }
+    });
+  });
+
+  afterEach((done) => {
+    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
+    query(queryText, (err) => {
+      if (!err) {
+        done();
+      } else {
+        done(new Error(err.Error));
+      }
+    });
+  });
+
+  describe('/POST post works', () => {
+    postData = {
+      title: 'First post!',
+      content: 'This is first Post',
+    };
+    it('It should be possible to create post', (done) => {
+      requestTime = Date.now();
+      chai
+        .request(server)
+        .post('/post')
+        .send(postData)
+        .set({ token: userData.testuser.id })
+        .end((err, res) => {
+          responseTime = Date.now();
+          expect(res.status).to.be.eql(200);
+          data = res.body;
+          expect(data.author.id).to.be.eql(userData.testuser.user_id);
+          expect(data.title).to.be.eql(postData.title);
+          expect(data.content).to.be.eql(postData.content);
+          expect(
+            requestTime
+            < Number.parseInt(data.created, 10)
+            < responseTime,
+          ).to.be.eql(true);
+          expect(data.created).to.be.eql(data.modified);
+          done();
         });
     });
   });
