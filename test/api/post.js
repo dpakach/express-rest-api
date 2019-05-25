@@ -206,8 +206,8 @@ describe('Post routes test', () => {
         }
       });
     });
-    requestTime = Date.now();
     it('It should be possible to update post', (done) => {
+      requestTime = Date.now();
       chai
         .request(server)
         .put(`/post/${getPostData.id}`)

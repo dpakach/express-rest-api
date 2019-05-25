@@ -20,8 +20,10 @@ userController.postUser = (req, res) => {
  */
 userController.getUser = (req, res) => {
   getUserHandler(req.params.id, (status = 200, data) => {
-    if (req.user === data.username) {
-      res.status(status).json(data).end();
+    if (data) {
+      if (req.user === data.username) {
+        res.status(status).json(data).end();
+      }
     } else {
       res.status(404).end();
     }

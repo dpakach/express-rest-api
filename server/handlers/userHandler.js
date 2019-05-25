@@ -8,7 +8,9 @@
 // Require dependencies
 const uuid = require('uuid/v4');
 
-const { query } = require('../db');
+const {
+  dbCreate, dbRead, dbReadSelectors, dbUpdateSelector,
+} = require('../db');
 const { hash, sanitize } = require('../utils');
 
 // create user handler object
@@ -22,15 +24,12 @@ const userHandler = {};
  */
 const getUserById = (id, callback) => {
   if (id) {
-    const queryText = 'SELECT id, username, email FROM users where id like $1';
-    const values = [id];
-    query(queryText, values, (err, response) => {
-      if (!err && response.rows[0]) {
-        callback(false, response.rows[0]);
-      } else {
+    dbRead('users', id, ['id', 'username', 'email'])
+      .then((res) => {
+        callback(false, res.rows[0]);
+      }).catch(() => {
         callback('Unable to find user.');
-      }
-    });
+      });
   } else {
     callback('Missing required values.');
   }
@@ -44,15 +43,12 @@ const getUserById = (id, callback) => {
  */
 const getUserByUsername = (username, callback) => {
   if (username) {
-    const queryText = 'SELECT id, username, email FROM users where username like $1';
-    const values = [username];
-    query(queryText, values, (err, response) => {
-      if (!err && response.rows[0]) {
-        callback(false, response.rows[0]);
-      } else {
+    dbReadSelectors('users', { username }, ['id', 'username', 'email'])
+      .then((res) => {
+        callback(false, res.rows[0]);
+      }).catch(() => {
         callback('Unable to find user.');
-      }
-    });
+      });
   } else {
     callback('Missing required values.');
   }
@@ -87,15 +83,14 @@ userHandler.createUser = (data, callback) => {
   const id = uuid();
   password = hash(password);
   if (username && password && email && id) {
-    const queryText = 'INSERT INTO "users"("id", "username", "password", "email") VALUES($1, $2, $3, $4)';
-    const values = [id, username, password, email];
-    query(queryText, values, (err) => {
-      if (!err) {
+    dbCreate('users', {
+      id, username, password, email,
+    })
+      .then(() => {
         callback(200, false);
-      } else {
+      }).catch(() => {
         callback(400, { Error: 'Error writing in database!' });
-      }
-    });
+      });
   } else {
     callback(400, { Error: 'Missing required values.' });
   }
@@ -112,15 +107,16 @@ const validatePassword = (username, userPassword, callback) => {
   let password = sanitize(userPassword, 'string', 6);
   password = hash(password);
   if (username && password) {
-    const queryText = 'SELECT id FROM users WHERE username LIKE $1 AND password LIKE $2';
-    const values = [username, password];
-    query(queryText, values, (err, response) => {
-      if (!err && response.rows.length > 0) {
-        callback(false, response.rows[0].id);
-      } else {
+    dbReadSelectors('users', { username, password }, ['id'])
+      .then((res) => {
+        if (res.rows.length > 0) {
+          callback(false, res.rows[0].id);
+        } else {
+          callback('Could not validate given user id and password');
+        }
+      }).catch(() => {
         callback('Could not validate given user id and password');
-      }
-    });
+      });
   } else {
     callback('Missing required values.');
   }
@@ -142,15 +138,12 @@ userHandler.changePassword = (id, data, callback) => {
           password = hash(password);
           oldPassword = hash(oldPassword);
           if (!err) {
-            const queryText = 'UPDATE users SET password = $1 WHERE id like $2 AND password like $3';
-            const values = [password, id, oldPassword];
-            query(queryText, values, (err) => {
-              if (!err) {
+            dbUpdateSelector('users', { id, password: oldPassword }, { password })
+              .then(() => {
                 callback(200);
-              } else {
+              }).catch(() => {
                 callback(500, { Error: 'Could not change your password' });
-              }
-            });
+              });
           } else {
             callback(403, { Error: 'Failed to validate given password' });
           }
