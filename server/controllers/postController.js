@@ -47,8 +47,12 @@ postController.getPost = (req, res) => {
  * Handler for updating post
  */
 postController.putPost = (req, res) => {
-  updatePost(req.params.id, req.body, (status = 200, data) => {
-    res.status(status).json(data).end();
+  updatePost(req.params.id, req.body, (status = 200, err, data) => {
+    if (!err) {
+      res.status(status).json(data).end();
+    } else {
+      res.status(status).json(err).end();
+    }
   });
 };
 

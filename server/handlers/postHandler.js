@@ -107,7 +107,7 @@ postHandler.createPost = (user, data, callback) => {
           }
         });
       } else {
-        callback(400, { Error: 'Error writing in database!' });
+        callback(500, { Error: 'Error writing in database!' });
       }
     });
   } else {
@@ -135,9 +135,15 @@ postHandler.updatePost = (postId, data, callback) => {
         const values = [title, content, modified, id];
         query(queryText, values, (err) => {
           if (!err) {
-            callback(200, false);
+            getPostById(id, (err, data) => {
+              if (!err && data) {
+                callback(200, false, data);
+              } else {
+                callback(500, { Error: 'Error while reading post' });
+              }
+            });
           } else {
-            callback(400, { Error: 'Error writing in database!' });
+            callback(500, { Error: 'Error writing in database!' });
           }
         });
       } else {
@@ -160,7 +166,7 @@ postHandler.deletePost = (postId, callback) => {
   if (id) {
     getPostById(id, (err, post) => {
       if (!err && post) {
-        const queryText = 'DELETE FROM  posts WHERE id like $1';
+        const queryText = 'DELETE FROM posts WHERE id like $1';
         const values = [id];
         query(queryText, values, (err) => {
           if (!err) {
