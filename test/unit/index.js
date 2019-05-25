@@ -84,7 +84,7 @@ describe('Token related functions should work', () => {
   });
 
   afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens;';
+    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
     query(queryText, (err) => {
       if (!err) {
         done();
@@ -165,7 +165,7 @@ describe('User related functions should work', () => {
   });
 
   afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users;';
+    const queryText = 'TRUNCATE TABLE users, posts, tokens;';
     query(queryText, (err) => {
       if (!err) {
         done();

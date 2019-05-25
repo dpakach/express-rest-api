@@ -16,6 +16,7 @@ const {
   verifyToken,
   getTokenById,
 } = require('../../server/handlers/tokenHandlers');
+
 const usersFixtures = require('../fixtures/users.json');
 
 const { expect } = chai;
@@ -57,7 +58,7 @@ describe('Token routes test', () => {
   });
 
   afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens;';
+    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
     query(queryText, (err) => {
       if (!err) {
         done();
@@ -256,7 +257,7 @@ describe('User routes test', () => {
 
 
   afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens;';
+    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
     query(queryText, (err) => {
       if (!err) {
         done();
@@ -396,7 +397,7 @@ describe('Password routes test', () => {
   });
 
   afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens;';
+    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
     query(queryText, (err) => {
       if (!err) {
         done();
@@ -518,3 +519,5 @@ describe('Password routes test', () => {
     });
   });
 });
+
+require('./post');
