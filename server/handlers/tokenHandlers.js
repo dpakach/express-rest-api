@@ -5,7 +5,9 @@
 // Require dependencies
 const uuid = require('uuid/v4');
 
-const { query } = require('../db');
+const {
+  dbCreate, dbRead, dbRemove, dbUpdate, dbReadSelectors,
+} = require('../db');
 const { sanitize } = require('../utils');
 const { validatePassword } = require('./userHandler');
 
@@ -20,15 +22,13 @@ const tokenHandler = {};
  */
 const getTokenById = (id, callback) => {
   if (id) {
-    const queryText = 'SELECT id, username, user_id, expires FROM tokens WHERE id like $1';
-    const values = [id];
-    query(queryText, values, (err, response) => {
-      if (!err && response.rows[0]) {
-        callback(false, response.rows[0]);
-      } else {
+    dbRead('tokens', id, ['id', 'username', 'user_id', 'expires'])
+      .then((res) => {
+        callback(false, res.rows[0]);
+      })
+      .catch(() => {
         callback('Unable to find the token');
-      }
-    });
+      });
   } else {
     callback('Missing required values');
   }
@@ -48,10 +48,10 @@ tokenHandler.createToken = (data, callback) => {
     validatePassword(username, password, (err, userId) => {
       if (!err) {
         const expires = Date.now() + 60 * 60 * 1000;
-        const queryText = 'INSERT INTO "tokens" ("id", "username", "user_id", "expires") VALUES($1, $2, $3, $4)';
-        const values = [id, username, userId, expires];
-        query(queryText, values, (err) => {
-          if (!err) {
+        dbCreate('tokens', {
+          username, id, expires, user_id: userId,
+        })
+          .then(() => {
             getTokenById(id, (err, token) => {
               if (!err) {
                 callback(200, token);
@@ -59,10 +59,9 @@ tokenHandler.createToken = (data, callback) => {
                 callback(500, { Error: 'Could not retrive the created token' });
               }
             });
-          } else {
-            callback(400, { Error: 'Error writing in database' });
-          }
-        });
+          }).catch(() => {
+            callback(500, { Error: 'Error writing in database' });
+          });
       } else {
         callback(403, { Error: 'Failed to validate your password' });
       }
@@ -99,16 +98,13 @@ tokenHandler.extendToken = (id, callback) => {
     getTokenById(id, (err, token) => {
       if (!err && token) {
         if (token.expires > Date.now()) {
-          const newExpires = Date.now() + 60 * 60 * 1000;
-          const queryText = 'UPDATE tokens SET expires = $1 WHERE id like $2';
-          const values = [newExpires, id];
-          query(queryText, values, (err) => {
-            if (!err) {
+          const expires = Date.now() + 60 * 60 * 1000;
+          dbUpdate('tokens', id, { expires })
+            .then(() => {
               callback(200);
-            } else {
-              callback(400, { Error: 'Could not extend your token' });
-            }
-          });
+            }).catch(() => {
+              callback(500, { Error: 'Could not extend your token' });
+            });
         } else {
           callback(403, { Error: 'Token already expired' });
         }
@@ -131,15 +127,12 @@ tokenHandler.removeToken = (id, callback) => {
   if (id) {
     getTokenById(id, (err, token) => {
       if (!err && token) {
-        const queryText = 'DELETE FROM tokens WHERE id like $1';
-        const values = [token.id];
-        query(queryText, values, (err) => {
-          if (!err) {
+        dbRemove('tokens', id)
+          .then(() => {
             callback(200);
-          } else {
+          }).catch(() => {
             callback(500, { Error: 'Could not delete your token' });
-          }
-        });
+          });
       } else {
         callback(404, { Error: 'Could not get the token specified' });
       }
@@ -156,22 +149,23 @@ tokenHandler.removeToken = (id, callback) => {
  * @param String username
  * @param function callback(err)
  */
-const verifyToken = (id, username, callback) => {
-  const user = sanitize(username, 'string', 6);
-  if (user && id) {
-    const queryText = 'SELECT * FROM tokens WHERE id like $1 AND username like $2';
-    const values = [id, user];
-    query(queryText, values, (err, result) => {
-      if (!err && result.rows.length > 0) {
-        if (result.rows[0].expires > Date.now()) {
-          callback(false);
+const verifyToken = (id, user, callback) => {
+  const userId = sanitize(user, 'string', 6);
+  if (userId && id) {
+    dbReadSelectors('tokens', { id, username: userId })
+      .then((res) => {
+        if (res.rows.length > 0) {
+          if (res.rows[0].expires > Date.now()) {
+            callback(false);
+          } else {
+            callback('Token already expired');
+          }
         } else {
-          callback('Token already expired');
+          callback('Could not find your token');
         }
-      } else {
+      }).catch(() => {
         callback('Could not find your token');
-      }
-    });
+      });
   } else {
     callback('Missing required fields');
   }

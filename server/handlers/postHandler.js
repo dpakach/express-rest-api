@@ -6,7 +6,9 @@
 // Require dependencies
 const uuid = require('uuid/v4');
 
-const { query } = require('../db');
+const {
+  dbCreate, dbRemove, dbRead, dbUpdate, dbReadSelectors,
+} = require('../db');
 const { sanitize } = require('../utils');
 const { getUserById } = require('./userHandler');
 
@@ -22,23 +24,20 @@ const postHandler = {};
 const getPostById = (postId, callback) => {
   const id = sanitize(postId, 'string');
   if (id) {
-    const queryText = 'SELECT id, author, title, content, created, modified FROM posts where id like $1';
-    const values = [id];
-    query(queryText, values, (err, response) => {
-      if (!err && response.rows[0]) {
-        const data = response.rows[0];
+    dbRead('posts', id, ['id', 'author', 'title', 'content', 'created', 'modified'])
+      .then((res) => {
+        const data = res.rows[0];
         getUserById(data.author, (err, user) => {
           if (!err && user) {
             data.author = user;
-            callback(false, response.rows[0]);
+            callback(false, res.rows[0]);
           } else {
             callback('Error while retriving data');
           }
         });
-      } else {
+      }).catch(() => {
         callback('Unable to find post.');
-      }
-    });
+      });
   } else {
     callback('Missing required values.');
   }
@@ -52,15 +51,12 @@ const getPostById = (postId, callback) => {
 postHandler.getPosts = (userId, callback) => {
   const user = sanitize(userId, 'string');
   if (user) {
-    const queryText = 'SELECT id, author, title, content, created, modified FROM posts where author like $1';
-    const values = [user];
-    query(queryText, values, (err, response) => {
-      if (!err && response.rows[0]) {
-        callback(200, response.rows);
-      } else {
+    dbReadSelectors('posts', { author: user }, ['id', 'author', 'title', 'content', 'created', 'modified'])
+      .then((res) => {
+        callback(200, res.rows);
+      }).catch(() => {
         callback(404, 'Unable to find post.');
-      }
-    });
+      });
   } else {
     callback(400, 'Missing required values.');
   }
@@ -95,10 +91,10 @@ postHandler.createPost = (user, data, callback) => {
   const created = String(Date.now());
   const content = sanitize(data.content, 'string');
   if (author && id && title && created && content) {
-    const queryText = 'INSERT INTO "posts"("id", "author", "content", "title", "created", "modified") VALUES($1, $2, $3, $4, $5, $5)';
-    const values = [id, author, content, title, created];
-    query(queryText, values, (err) => {
-      if (!err) {
+    dbCreate('posts', {
+      author, id, content, title, created, modified: created,
+    })
+      .then(() => {
         getPostById(id, (err, data) => {
           if (!err && data) {
             callback(200, false, data);
@@ -106,10 +102,9 @@ postHandler.createPost = (user, data, callback) => {
             callback(500, { Error: 'Error while reading post' });
           }
         });
-      } else {
+      }).catch(() => {
         callback(500, { Error: 'Error writing in database!' });
-      }
-    });
+      });
   } else {
     callback(400, { Error: 'Missing required values.' });
   }
@@ -131,10 +126,8 @@ postHandler.updatePost = (postId, data, callback) => {
         title = title || data.title;
         content = content || data.content;
         const modified = String(Date.now());
-        const queryText = 'UPDATE posts SET title = $1, content = $2, modified = $3 WHERE id like $4';
-        const values = [title, content, modified, id];
-        query(queryText, values, (err) => {
-          if (!err) {
+        dbUpdate('posts', id, { title, content, modified })
+          .then(() => {
             getPostById(id, (err, data) => {
               if (!err && data) {
                 callback(200, false, data);
@@ -142,10 +135,10 @@ postHandler.updatePost = (postId, data, callback) => {
                 callback(500, { Error: 'Error while reading post' });
               }
             });
-          } else {
+          })
+          .catch(() => {
             callback(500, { Error: 'Error writing in database!' });
-          }
-        });
+          });
       } else {
         callback(404, { Error: 'Unable to find the Post' });
       }
@@ -166,15 +159,12 @@ postHandler.deletePost = (postId, callback) => {
   if (id) {
     getPostById(id, (err, post) => {
       if (!err && post) {
-        const queryText = 'DELETE FROM posts WHERE id like $1';
-        const values = [id];
-        query(queryText, values, (err) => {
-          if (!err) {
+        dbRemove('posts', id)
+          .then(() => {
             callback(200, false);
-          } else {
+          }).catch(() => {
             callback(400, { Error: 'Error deleting from database!' });
-          }
-        });
+          });
       } else {
         callback(404, { Error: 'Unable to find the Post' });
       }
