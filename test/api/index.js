@@ -57,17 +57,6 @@ describe('Token routes test', () => {
     });
   });
 
-  afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
-    query(queryText, (err) => {
-      if (!err) {
-        done();
-      } else {
-        done(new Error(err.Error));
-      }
-    });
-  });
-
   describe('/POST token works', () => {
     it('It should be possible to create token', (done) => {
       userData = {
@@ -255,18 +244,6 @@ describe('User routes test', () => {
     });
   });
 
-
-  afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
-    query(queryText, (err) => {
-      if (!err) {
-        done();
-      } else {
-        done(new Error(err.Error));
-      }
-    });
-  });
-
   describe('/POST user works', () => {
     it('It should be possible to create user', (done) => {
       chai
@@ -390,17 +367,6 @@ describe('Password routes test', () => {
             done(new Error(err.Error));
           }
         });
-      } else {
-        done(new Error(err.Error));
-      }
-    });
-  });
-
-  afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
-    query(queryText, (err) => {
-      if (!err) {
-        done();
       } else {
         done(new Error(err.Error));
       }

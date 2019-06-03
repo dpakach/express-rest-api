@@ -2,9 +2,18 @@
 
 process.env.NODE_ENV = 'test';
 
-describe('UNIT TESTS', () => {
-  require('./unit');
-});
-describe('API TESTS', () => {
-  require('./api');
+const { dropAllTables } = require('./helpers');
+
+describe('Tests', () => {
+  afterEach((done) => {
+    dropAllTables(done);
+  });
+
+  describe('UNIT TESTS', () => {
+    require('./unit');
+  });
+
+  describe('API TESTS', () => {
+    require('./api');
+  });
 });

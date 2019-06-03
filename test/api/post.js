@@ -3,7 +3,6 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 
 const server = require('../../start');
-const { query } = require('../../server/db');
 const {
   createUser,
 } = require('../../server/handlers/userHandler');
@@ -33,17 +32,6 @@ describe('Post routes test', () => {
             done(new Error(err.Error));
           }
         });
-      } else {
-        done(new Error(err.Error));
-      }
-    });
-  });
-
-  afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
-    query(queryText, (err) => {
-      if (!err) {
-        done();
       } else {
         done(new Error(err.Error));
       }

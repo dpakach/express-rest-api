@@ -13,7 +13,6 @@ const { verifyToken, createToken, getTokenById } = require('../../server/handler
 const {
   createUser, getUserById, getUserByUsername, validatePassword,
 } = require('../../server/handlers/userHandler');
-const { query } = require('../../server/db');
 const usersFixtures = require('../fixtures/users.json');
 
 const { expect } = chai;
@@ -77,17 +76,6 @@ describe('Token related functions should work', () => {
             done(new Error(err.Error));
           }
         });
-      } else {
-        done(new Error(err.Error));
-      }
-    });
-  });
-
-  afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
-    query(queryText, (err) => {
-      if (!err) {
-        done();
       } else {
         done(new Error(err.Error));
       }
@@ -158,17 +146,6 @@ describe('User related functions should work', () => {
             done(new Error(err.Error));
           }
         });
-      } else {
-        done(new Error(err.Error));
-      }
-    });
-  });
-
-  afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, posts, tokens;';
-    query(queryText, (err) => {
-      if (!err) {
-        done();
       } else {
         done(new Error(err.Error));
       }
