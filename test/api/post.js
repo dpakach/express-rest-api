@@ -4,17 +4,11 @@ const chaiHttp = require('chai-http');
 
 const server = require('../../start');
 const {
-  createUser,
-} = require('../../server/handlers/userHandler');
-const {
-  createToken,
-} = require('../../server/handlers/tokenHandlers');
-const {
   createPost,
   getPostById,
 } = require('../../server/handlers/postHandler');
 
-const usersFixtures = require('../fixtures/users.json');
+const { createTestUser } = require('../helpers');
 
 const { expect } = chai;
 chai.use(chaiHttp);
@@ -22,20 +16,12 @@ chai.use(chaiHttp);
 describe('Post routes test', () => {
   userData = {};
   beforeEach((done) => {
-    createUser(usersFixtures.testuser, (status, err) => {
-      if (!err) {
-        createToken(usersFixtures.testuser, (status, data) => {
-          if (status === 200) {
-            userData.testuser = data;
-            done();
-          } else {
-            done(new Error(err.Error));
-          }
-        });
-      } else {
-        done(new Error(err.Error));
-      }
-    });
+    createTestUser('testuser')
+      .then((data) => {
+        userData.testuser = data;
+        done();
+      })
+      .catch(e => done(new Error(e)));
   });
 
   describe('/POST post works', () => {
