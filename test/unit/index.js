@@ -9,12 +9,12 @@ const assert = require('assert');
 const chai = require('chai');
 
 const utils = require('../../server/utils');
-const { verifyToken, createToken, getTokenById } = require('../../server/handlers/tokenHandlers');
+const { verifyToken, getTokenById } = require('../../server/handlers/tokenHandlers');
 const {
-  createUser, getUserById, getUserByUsername, validatePassword,
+  getUserById, getUserByUsername, validatePassword,
 } = require('../../server/handlers/userHandler');
-const { query } = require('../../server/db');
 const usersFixtures = require('../fixtures/users.json');
+const { createTestUser } = require('../helpers');
 
 const { expect } = chai;
 
@@ -67,31 +67,12 @@ describe('Tests for Hash function', () => {
 describe('Token related functions should work', () => {
   userData = {};
   beforeEach((done) => {
-    createUser(usersFixtures.testuser, (status, err) => {
-      if (!err) {
-        createToken(usersFixtures.testuser, (status, data) => {
-          if (status === 200) {
-            userData.testuser = data;
-            done();
-          } else {
-            done(new Error(err.Error));
-          }
-        });
-      } else {
-        done(new Error(err.Error));
-      }
-    });
-  });
-
-  afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, tokens, posts;';
-    query(queryText, (err) => {
-      if (!err) {
+    createTestUser('testuser')
+      .then((data) => {
+        userData.testuser = data;
         done();
-      } else {
-        done(new Error(err.Error));
-      }
-    });
+      })
+      .catch(e => done(new Error(e)));
   });
 
   it('Verify Token Should not give error on using correct token', (done) => {
@@ -148,31 +129,12 @@ describe('Token related functions should work', () => {
 describe('User related functions should work', () => {
   userData = {};
   beforeEach((done) => {
-    createUser(usersFixtures.testuser, (status, err) => {
-      if (!err) {
-        createToken(usersFixtures.testuser, (status, data) => {
-          if (status === 200) {
-            userData.testuser = data;
-            done();
-          } else {
-            done(new Error(err.Error));
-          }
-        });
-      } else {
-        done(new Error(err.Error));
-      }
-    });
-  });
-
-  afterEach((done) => {
-    const queryText = 'TRUNCATE TABLE users, posts, tokens;';
-    query(queryText, (err) => {
-      if (!err) {
+    createTestUser('testuser')
+      .then((data) => {
+        userData.testuser = data;
         done();
-      } else {
-        done(new Error(err.Error));
-      }
-    });
+      })
+      .catch(e => done(new Error(e)));
   });
 
   it('Get User by Id should work', (done) => {
