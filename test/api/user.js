@@ -38,16 +38,15 @@ describe('User routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
           expect(res.body).to.be.eqls(false);
-          getUserByUsername(usersFixtures.testuser2.username, (err, data) => {
-            if (!err) {
+          getUserByUsername(usersFixtures.testuser2.username)
+            .then((data) => {
               expect(data.username).to.be.eql(usersFixtures.testuser2.username);
               expect(data.email).to.be.eql(usersFixtures.testuser2.email);
               expect(data.username).to.be.eql(usersFixtures.testuser2.username);
               done();
-            } else {
+            }).catch((err) => {
               done(new Error(JSON.stringify(err)));
-            }
-          });
+            });
         });
     });
   });
@@ -97,7 +96,8 @@ describe('User routes test', () => {
         .set('token', 'i_dont_exist')
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.username).to.be.eql(undefined);
+          expect(res.body.Error).not.to.be.eql(undefined);
           done();
         });
     });
@@ -164,13 +164,11 @@ describe('Password routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
           expect(res.body).to.be.eql('');
-          validatePassword(userData.testuser.username, newPassword, (err) => {
-            if (!err) {
-              done();
-            } else {
-              done(new Error('New password could not be validated'));
-            }
-          });
+          validatePassword(userData.testuser.username, newPassword)
+            .then(() => done())
+            .catch((err) => {
+              done(err);
+            });
         });
     });
 
@@ -186,13 +184,14 @@ describe('Password routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
           expect(res.body).to.be.eql({});
-          validatePassword(userData.testuser.username, newPassword, (err) => {
-            if (err) {
+          validatePassword(userData.testuser.username, newPassword)
+            .then(() => {
+              done(new Error('Password changed when it was expected not to'));
+            })
+            .catch((err) => {
+              expect(err).to.be.not.eql(undefined);
               done();
-            } else {
-              done(new Error('Could not validate the password'));
-            }
-          });
+            });
         });
     });
 
@@ -208,13 +207,14 @@ describe('Password routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
           expect(res.body).to.be.eql({});
-          validatePassword(userData.testuser.username, newPassword, (err) => {
-            if (err) {
+          validatePassword(userData.testuser.username, newPassword)
+            .then(() => {
+              done(new Error('Password changed when it was expected not to'));
+            })
+            .catch((err) => {
+              expect(err).to.be.not.eql(undefined);
               done();
-            } else {
-              done(new Error('Could not validate the password'));
-            }
-          });
+            });
         });
     });
 
@@ -230,13 +230,14 @@ describe('Password routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
           expect(res.body).to.be.eql({});
-          validatePassword(userData.testuser.username, newPassword, (err) => {
-            if (err) {
+          validatePassword(userData.testuser.username, newPassword)
+            .then(() => {
+              done(new Error('Password changed when it was expected not to'));
+            })
+            .catch((err) => {
+              expect(err).to.be.not.eql(undefined);
               done();
-            } else {
-              done(new Error('Could not validate the password'));
-            }
-          });
+            });
         });
     });
 
@@ -251,13 +252,14 @@ describe('Password routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
           expect(res.body).to.be.eql({});
-          validatePassword(userData.testuser.username, newPassword, (err) => {
-            if (err) {
+          validatePassword(userData.testuser.username, newPassword)
+            .then(() => {
+              done(new Error('Password changed when it was expected not to'));
+            })
+            .catch((err) => {
+              expect(err).to.be.not.eql(undefined);
               done();
-            } else {
-              done(new Error('Could not validate the password'));
-            }
-          });
+            });
         });
     });
   });

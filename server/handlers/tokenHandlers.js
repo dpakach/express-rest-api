@@ -20,18 +20,13 @@ const tokenHandler = {};
  * @param string id
  * @param function callback(err, status, data)
  */
-const getTokenById = (id, callback) => {
-  if (id) {
-    dbRead('tokens', id, ['id', 'username', 'user_id', 'expires'])
-      .then((res) => {
-        callback(false, res.rows[0]);
-      })
-      .catch(() => {
-        callback('Unable to find the token');
-      });
-  } else {
-    callback('Missing required values');
+const getTokenById = (id) => {
+  if (!id) {
+    return Promise.reject(new Error('Missing required values'));
   }
+
+  return dbRead('tokens', id, ['id', 'username', 'user_id', 'expires'])
+    .then(res => res.rows[0]);
 };
 
 /**
@@ -45,27 +40,29 @@ tokenHandler.createToken = (data, callback) => {
   const password = sanitize(data.password, 'string', 6);
   const id = uuid();
   if (username && password && id) {
-    validatePassword(username, password, (err, userId) => {
-      if (!err) {
+    validatePassword(username, password)
+      .then((userId) => {
         const expires = Date.now() + 60 * 60 * 1000;
         dbCreate('tokens', {
           username, id, expires, user_id: userId,
         })
           .then(() => {
-            getTokenById(id, (err, token) => {
-              if (!err) {
-                callback(200, token);
-              } else {
-                callback(500, { Error: 'Could not retrive the created token' });
-              }
-            });
+            getTokenById(id)
+              .then((token) => {
+                if (token) {
+                  callback(200, token);
+                } else {
+                  callback(404, { Error: 'Could not retrive the created token' });
+                }
+              }).catch((e) => {
+                callback(500, e);
+              });
           }).catch(() => {
             callback(500, { Error: 'Error writing in database' });
           });
-      } else {
-        callback(403, { Error: 'Failed to validate your password' });
-      }
-    });
+      }).catch((error) => {
+        callback(403, error);// { Error: 'Failed to validate your password' });
+      });
   } else {
     callback(400, { Error: 'Missing required values' });
   }
@@ -78,13 +75,16 @@ tokenHandler.createToken = (data, callback) => {
  * @param function callback(err, status, data)
  */
 tokenHandler.getTokenHandler = (id, callback) => {
-  getTokenById(id, (err, token) => {
-    if (!err) {
-      callback(200, token);
-    } else {
-      callback(404, { Error: err });
-    }
-  });
+  getTokenById(id)
+    .then((token) => {
+      if (token) {
+        callback(200, token);
+      } else {
+        callback(404, { Error: 'Could not find the token!' });
+      }
+    }).catch((err) => {
+      callback(500, err);
+    });
 };
 
 /**
@@ -95,8 +95,11 @@ tokenHandler.getTokenHandler = (id, callback) => {
  */
 tokenHandler.extendToken = (id, callback) => {
   if (id) {
-    getTokenById(id, (err, token) => {
-      if (!err && token) {
+    getTokenById(id)
+      .then((token) => {
+        if (!token) {
+          callback(404, { Error: 'Could not get the token specified' });
+        }
         if (token.expires > Date.now()) {
           const expires = Date.now() + 60 * 60 * 1000;
           dbUpdate('tokens', id, { expires })
@@ -108,10 +111,9 @@ tokenHandler.extendToken = (id, callback) => {
         } else {
           callback(403, { Error: 'Token already expired' });
         }
-      } else {
-        callback(404, { Error: 'Could not get the token specified' });
-      }
-    });
+      }).catch((err) => {
+        callback(500, err);
+      });
   } else {
     callback(400, { Error: 'Missing required values' });
   }
@@ -125,18 +127,20 @@ tokenHandler.extendToken = (id, callback) => {
  */
 tokenHandler.removeToken = (id, callback) => {
   if (id) {
-    getTokenById(id, (err, token) => {
-      if (!err && token) {
+    getTokenById(id)
+      .then((token) => {
+        if (!token) {
+          callback(404, { Error: 'Could not get the token specified' });
+        }
         dbRemove('tokens', id)
           .then(() => {
             callback(200);
           }).catch(() => {
             callback(500, { Error: 'Could not delete your token' });
           });
-      } else {
-        callback(404, { Error: 'Could not get the token specified' });
-      }
-    });
+      }).catch((err) => {
+        callback(500, err);
+      });
   } else {
     callback(400, { Error: 'Missing required values' });
   }
@@ -181,23 +185,26 @@ const verifyToken = (id, user, callback) => {
 const authenticate = (req, res, next) => {
   const requestToken = req.headers.token;
   if (requestToken) {
-    getTokenById(requestToken, (err, token) => {
-      if (!err && token) {
-        verifyToken(requestToken, token.username, (err) => {
-          if (!err) {
-            req.user = token.username;
-            req.user_id = token.user_id;
-            next();
-          } else {
-            res.status(403).json({ Error: err }).end();
-          }
-        });
-      } else {
-        res.status(403).end();
-      }
-    });
+    getTokenById(requestToken)
+      .then((token) => {
+        if (token) {
+          verifyToken(requestToken, token.username, (err) => {
+            if (!err) {
+              req.user = token.username;
+              req.user_id = token.user_id;
+              next();
+            } else {
+              res.status(403).json({ Error: err }).end();
+            }
+          });
+        } else {
+          res.status(403).json({ Error: 'Token doesnot exists!' }).end();
+        }
+      }).catch(() => {
+        res.status(500).end({ Error: 'Could not validate the token' });
+      });
   } else {
-    res.status(403).end();
+    res.status(403).end({ Error: 'Token not provided' });
   }
 };
 

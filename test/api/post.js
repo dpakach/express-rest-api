@@ -150,7 +150,7 @@ describe('Post routes test', () => {
         .set({ token: userData.testuser.id })
         .end((err, res) => {
           expect(res.status).to.be.eql(404);
-          expect(res.body.Error).not.to.be.eql(undefined);
+          expect(res.body).to.be.eql({});
           done();
         });
     });
@@ -262,11 +262,13 @@ describe('Post routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
           expect(res.body).to.be.eql(false);
-          getPostById(getPostData.id, (err, data) => {
-            expect(data).to.be.eql(undefined);
-            expect(err).not.to.be.eql(undefined);
-            done();
-          });
+          getPostById(getPostData.id)
+            .then((data) => {
+              expect(data).to.be.eql(undefined);
+              done();
+            }).catch((err) => {
+              done(err);
+            });
         });
     });
 

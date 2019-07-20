@@ -96,16 +96,15 @@ describe('Token routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
           expect(res.body).to.be.eql('');
-          getTokenById(userData.testuser.id, (err, data) => {
-            if (!err && data) {
+          getTokenById(userData.testuser.id)
+            .then((data) => {
               expect(Number.parseInt(data.expires, 10)).to.be.greaterThan(
                 requestTime + 3600000,
               );
               done();
-            } else {
-              done(new Error(JSON.stringify(err)));
-            }
-          });
+            }).catch((err) => {
+              done(err);
+            });
         });
     });
 
@@ -117,16 +116,15 @@ describe('Token routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
           expect(res.body).to.be.eql({});
-          getTokenById(userData.testuser.id, (err, data) => {
-            if (!err && data) {
+          getTokenById(userData.testuser.id)
+            .then((data) => {
               expect(Number.parseInt(data.expires, 10)).to.be.lessThan(
                 requestTime + 3600000,
               );
               done();
-            } else {
+            }).catch((err) => {
               done(new Error(JSON.stringify(err)));
-            }
-          });
+            });
         });
     });
   });
@@ -142,15 +140,16 @@ describe('Token routes test', () => {
           expect(res.body).to.be.eql('');
           verifyToken(res.body.id, usersFixtures.testuser.username, (err) => {
             if (err) {
-              getTokenById(userData.testuser.username, (err, data) => {
-                if (!err && data) {
-                  done(
-                    new Error('Token still exists when it should be deleted'),
-                  );
-                } else {
-                  done();
-                }
-              });
+              getTokenById(userData.testuser.username)
+                .then((data) => {
+                  if (data) {
+                    done(
+                      new Error('Token still exists when it should be deleted'),
+                    );
+                  } else {
+                    done();
+                  }
+                });
             } else {
               done(new Error('Token still exists when it should be deleted'));
             }
