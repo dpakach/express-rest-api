@@ -23,16 +23,11 @@ const userHandler = {};
  * @param function callback(error, data)
  */
 const getUserById = (id, callback) => {
-  if (id) {
-    dbRead('users', id, ['id', 'username', 'email'])
-      .then((res) => {
-        callback(false, res.rows[0]);
-      }).catch(() => {
-        callback('Unable to find user.');
-      });
-  } else {
-    callback('Missing required values.');
+  if(!id) {
+    Promise.reject('Missing required values.');
   }
+  return dbRead('users', id, ['id', 'username', 'email'])
+    .then(res => res.rows[0])
 };
 
 /**
@@ -42,16 +37,11 @@ const getUserById = (id, callback) => {
  * @param function callback(error, data)
  */
 const getUserByUsername = (username, callback) => {
-  if (username) {
-    dbReadSelectors('users', { username }, ['id', 'username', 'email'])
-      .then((res) => {
-        callback(false, res.rows[0]);
-      }).catch(() => {
-        callback('Unable to find user.');
-      });
-  } else {
-    callback('Missing required values.');
+  if(!username) {
+    Promise.reject('Missing required values.');
   }
+  return dbReadSelectors('users', { username }, ['id', 'username', 'email'])
+    .then(res => res.rows[0])
 };
 
 /**
@@ -61,13 +51,16 @@ const getUserByUsername = (username, callback) => {
  * @param function callback(status, data)
  */
 userHandler.getUserHandler = (id, callback) => {
-  getUserById(id, (err, user) => {
-    if (!err) {
-      callback(200, user);
-    } else {
-      callback(404, { Error: err });
-    }
-  });
+  getUserById(id)
+    .then(user => {
+      if(user){
+        callback(200, user);
+      } else {
+        callback(404, {Error : "User Not found"});
+      }
+    }).catch(err => {
+      callback(500, { Error: err });
+    })
 };
 
 /**
@@ -103,23 +96,22 @@ userHandler.createUser = (data, callback) => {
  * @param String userPassword
  * @param function callback
  */
-const validatePassword = (username, userPassword, callback) => {
+const validatePassword = (username, userPassword) => {
   let password = sanitize(userPassword, 'string', 6);
   password = hash(password);
-  if (username && password) {
-    dbReadSelectors('users', { username, password }, ['id'])
-      .then((res) => {
-        if (res.rows.length > 0) {
-          callback(false, res.rows[0].id);
-        } else {
-          callback('Could not validate given user id and password');
-        }
-      }).catch(() => {
-        callback('Could not validate given user id and password');
-      });
-  } else {
-    callback('Missing required values.');
+  if(!username || !password) {
+    return Promise.reject('Missing required values');
   }
+  return new Promise((resolve, reject) => {
+    dbReadSelectors('users', { username, password }, ['id'])
+      .then(res => {
+        if(res.rows.length) {
+          resolve(res.rows[0].id)
+        } else {
+          reject('Could not validate given username and password');
+        }
+      })
+  })
 };
 
 /**
@@ -132,26 +124,20 @@ userHandler.changePassword = (id, data, callback) => {
   let password = sanitize(data.newPassword, 'string', 6);
   let oldPassword = sanitize(data.password, 'string', 6);
   if (id && password && oldPassword) {
-    getUserById(id, (err, user) => {
-      if (!err) {
-        validatePassword(user.username, oldPassword, (err) => {
-          password = hash(password);
-          oldPassword = hash(oldPassword);
-          if (!err) {
-            dbUpdateSelector('users', { id, password: oldPassword }, { password })
-              .then(() => {
-                callback(200);
-              }).catch(() => {
-                callback(500, { Error: 'Could not change your password' });
-              });
-          } else {
-            callback(403, { Error: 'Failed to validate given password' });
-          }
-        });
-      } else {
-        callback(404, { Error: 'Could not find the user' });
-      }
-    });
+    getUserById(id)
+      .then(user => validatePassword(user.username, oldPassword))
+      .then(id => {
+        password = hash(password);
+        oldPassword = hash(oldPassword);
+        dbUpdateSelector('users', { id, password: oldPassword }, { password })
+          .then(() => {
+            callback(200);
+          }).catch(() => {
+            callback(500, { Error: 'Could not change your password' });
+          });
+      }).catch(err => {
+        callback(404, { Error: err });
+      })
   } else {
     callback(400, { Error: 'Missing required values.' });
   }

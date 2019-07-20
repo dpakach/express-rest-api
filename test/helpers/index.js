@@ -21,7 +21,7 @@ helpers.createTestUser = user => new Promise((resolve, reject) => {
   if (!usersFixtures.hasOwnProperty(user)) {
     reject(new Error(`Could not find test user with username ${user.toString()}`));
   }
-  createUser(usersFixtures[user], (status, data) => {
+  createUser(usersFixtures[user], (status, err) => {
     if (status === 200) {
       createToken(usersFixtures[user], (status, data) => {
         if (status === 200 && data) {
@@ -31,7 +31,7 @@ helpers.createTestUser = user => new Promise((resolve, reject) => {
         }
       });
     } else {
-      reject(data.Error);
+      reject(err.Error);
     }
   });
 });

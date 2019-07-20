@@ -23,24 +23,28 @@ const postHandler = {};
  */
 const getPostById = (postId, callback) => {
   const id = sanitize(postId, 'string');
-  if (id) {
+  return new Promise((resolve, reject) => {
+    if(!id) {
+      reject('Missing required values.');
+    }
     dbRead('posts', id, ['id', 'author', 'title', 'content', 'created', 'modified'])
       .then((res) => {
-        const data = res.rows[0];
-        getUserById(data.author, (err, user) => {
-          if (!err && user) {
-            data.author = user;
-            callback(false, res.rows[0]);
-          } else {
-            callback('Error while retriving data');
-          }
-        });
-      }).catch(() => {
-        callback('Unable to find post.');
+        if(res.rows.length) {
+          const data = res.rows[0];
+          getUserById(data.author)
+            .then(user => {
+              data.author = user;
+              resolve(data);
+            }).catch(err => {
+              reject('Error while retriving data');
+            });
+        } else {
+          resolve()
+        }
+      }).catch(err => {
+        reject('Unable to find post.');
       });
-  } else {
-    callback('Missing required values.');
-  }
+  })
 };
 
 /**
@@ -69,13 +73,14 @@ postHandler.getPosts = (userId, callback) => {
  * @param function callback(status, data)
  */
 postHandler.getPostHandler = (id, callback) => {
-  getPostById(id, (err, post) => {
-    if (!err) {
-      callback(200, post);
-    } else {
-      callback(404, { Error: err });
-    }
-  });
+  getPostById(id)
+    .then(post => {
+      const status = post ? 200 : 404;
+      const postData = post || {};
+      callback(status, postData);
+    }).catch(e => {
+      callback(500, e)
+    })
 };
 
 /**
@@ -95,13 +100,12 @@ postHandler.createPost = (user, data, callback) => {
       author, id, content, title, created, modified: created,
     })
       .then(() => {
-        getPostById(id, (err, data) => {
-          if (!err && data) {
+        getPostById(id)
+          .then(data => {
             callback(200, false, data);
-          } else {
+          }).catch(e => {
             callback(500, { Error: 'Error while reading post' });
-          }
-        });
+          })
       }).catch(() => {
         callback(500, { Error: 'Error writing in database!' });
       });
@@ -121,28 +125,30 @@ postHandler.updatePost = (postId, data, callback) => {
   let title = sanitize(data.title, 'string');
   let content = sanitize(data.content, 'string');
   if (id && (title || content)) {
-    getPostById(id, (err, post) => {
-      if (!err && post) {
-        title = title || data.title;
-        content = content || data.content;
-        const modified = String(Date.now());
-        dbUpdate('posts', id, { title, content, modified })
-          .then(() => {
-            getPostById(id, (err, data) => {
-              if (!err && data) {
-                callback(200, false, data);
-              } else {
-                callback(500, { Error: 'Error while reading post' });
-              }
-            });
-          })
-          .catch(() => {
-            callback(500, { Error: 'Error writing in database!' });
-          });
-      } else {
-        callback(404, { Error: 'Unable to find the Post' });
-      }
-    });
+    getPostById(id)
+      .then(post => {
+        if(!post) {
+          callback(404, {Error: 'Unable to find the Post'})
+        } else {
+          title = title || data.title;
+          content = content || data.content;
+          const modified = String(Date.now());
+          dbUpdate('posts', id, { title, content, modified })
+            .then(() => {
+              getPostById(id)
+                .then(data => {
+                  callback(200, false, data);
+                }).catch(err => {
+                  callback(500, err);
+                })
+              })
+              .catch(() => {
+                callback(500, { Error: 'Error writing in database!' });
+              });
+        }
+      }).catch(err => {
+        callback(500, err);
+      })
   } else {
     callback(400, { Error: 'Missing required values.' });
   }
@@ -157,18 +163,21 @@ postHandler.updatePost = (postId, data, callback) => {
 postHandler.deletePost = (postId, callback) => {
   const id = sanitize(postId, 'string');
   if (id) {
-    getPostById(id, (err, post) => {
-      if (!err && post) {
-        dbRemove('posts', id)
-          .then(() => {
-            callback(200, false);
-          }).catch(() => {
-            callback(400, { Error: 'Error deleting from database!' });
-          });
-      } else {
-        callback(404, { Error: 'Unable to find the Post' });
-      }
-    });
+    getPostById(id)
+      .then(post => {
+        if (post) {
+          dbRemove('posts', id)
+            .then(() => {
+              callback(200, false);
+            }).catch(() => {
+              callback(500, { Error: 'Error deleting from database!' });
+            });
+        } else {
+          callback(404, { Error: 'Unable to find the Post' });
+        }
+      }).catch(err => {
+        callback(500, err)
+      })
   } else {
     callback(400, { Error: 'Missing required values.' });
   }
