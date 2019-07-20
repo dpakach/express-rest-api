@@ -263,12 +263,12 @@ describe('Post routes test', () => {
           expect(res.status).to.be.eql(200);
           expect(res.body).to.be.eql(false);
           getPostById(getPostData.id)
-            .then(data => {
+            .then((data) => {
               expect(data).to.be.eql(undefined);
               done();
-            }).catch(err => {
-              done(err)
-            })
+            }).catch((err) => {
+              done(err);
+            });
         });
     });
 

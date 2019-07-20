@@ -21,30 +21,30 @@ const postHandler = {};
  * @param string id
  * @param function callback(error, data)
  */
-const getPostById = (postId, callback) => {
+const getPostById = (postId) => {
   const id = sanitize(postId, 'string');
   return new Promise((resolve, reject) => {
-    if(!id) {
-      reject('Missing required values.');
+    if (!id) {
+      reject(new Error('Missing required values.'));
     }
     dbRead('posts', id, ['id', 'author', 'title', 'content', 'created', 'modified'])
       .then((res) => {
-        if(res.rows.length) {
+        if (res.rows.length) {
           const data = res.rows[0];
           getUserById(data.author)
-            .then(user => {
+            .then((user) => {
               data.author = user;
               resolve(data);
-            }).catch(err => {
-              reject('Error while retriving data');
+            }).catch((err) => {
+              reject(err);
             });
         } else {
-          resolve()
+          resolve();
         }
-      }).catch(err => {
-        reject('Unable to find post.');
+      }).catch((err) => {
+        reject(err);
       });
-  })
+  });
 };
 
 /**
@@ -74,13 +74,13 @@ postHandler.getPosts = (userId, callback) => {
  */
 postHandler.getPostHandler = (id, callback) => {
   getPostById(id)
-    .then(post => {
+    .then((post) => {
       const status = post ? 200 : 404;
       const postData = post || {};
       callback(status, postData);
-    }).catch(e => {
-      callback(500, e)
-    })
+    }).catch((e) => {
+      callback(500, e);
+    });
 };
 
 /**
@@ -101,11 +101,11 @@ postHandler.createPost = (user, data, callback) => {
     })
       .then(() => {
         getPostById(id)
-          .then(data => {
+          .then((data) => {
             callback(200, false, data);
-          }).catch(e => {
+          }).catch(() => {
             callback(500, { Error: 'Error while reading post' });
-          })
+          });
       }).catch(() => {
         callback(500, { Error: 'Error writing in database!' });
       });
@@ -126,9 +126,9 @@ postHandler.updatePost = (postId, data, callback) => {
   let content = sanitize(data.content, 'string');
   if (id && (title || content)) {
     getPostById(id)
-      .then(post => {
-        if(!post) {
-          callback(404, {Error: 'Unable to find the Post'})
+      .then((post) => {
+        if (!post) {
+          callback(404, { Error: 'Unable to find the Post' });
         } else {
           title = title || data.title;
           content = content || data.content;
@@ -136,19 +136,19 @@ postHandler.updatePost = (postId, data, callback) => {
           dbUpdate('posts', id, { title, content, modified })
             .then(() => {
               getPostById(id)
-                .then(data => {
+                .then((data) => {
                   callback(200, false, data);
-                }).catch(err => {
+                }).catch((err) => {
                   callback(500, err);
-                })
-              })
-              .catch(() => {
-                callback(500, { Error: 'Error writing in database!' });
-              });
+                });
+            })
+            .catch(() => {
+              callback(500, { Error: 'Error writing in database!' });
+            });
         }
-      }).catch(err => {
+      }).catch((err) => {
         callback(500, err);
-      })
+      });
   } else {
     callback(400, { Error: 'Missing required values.' });
   }
@@ -164,7 +164,7 @@ postHandler.deletePost = (postId, callback) => {
   const id = sanitize(postId, 'string');
   if (id) {
     getPostById(id)
-      .then(post => {
+      .then((post) => {
         if (post) {
           dbRemove('posts', id)
             .then(() => {
@@ -175,9 +175,9 @@ postHandler.deletePost = (postId, callback) => {
         } else {
           callback(404, { Error: 'Unable to find the Post' });
         }
-      }).catch(err => {
-        callback(500, err)
-      })
+      }).catch((err) => {
+        callback(500, err);
+      });
   } else {
     callback(400, { Error: 'Missing required values.' });
   }

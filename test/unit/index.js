@@ -108,24 +108,24 @@ describe('Token related functions should work', () => {
 
   it('Get token by Id should work on using correct token', (done) => {
     getTokenById(userData.testuser.id)
-      .then(data => {
+      .then((data) => {
         expect(data.username).to.be.eql(userData.testuser.username);
         expect(data.user_id).to.be.eql(userData.testuser.user_id);
         expect(data.id).to.be.eql(userData.testuser.id);
         done();
-      }).catch(err => {
+      }).catch((err) => {
         done(err);
       });
   });
 
   it('Get token by Id should not work on using incorrect token', (done) => {
     getTokenById('invalid_token')
-      .then(data => {
+      .then((data) => {
         expect(data).to.be.eql(undefined);
         done();
-      }).catch(err => {
+      }).catch((err) => {
         done(err);
-      })
+      });
   });
 });
 
@@ -142,73 +142,85 @@ describe('User related functions should work', () => {
 
   it('Get User by Id should work', (done) => {
     getUserById(userData.testuser.user_id)
-      .then(data => {
+      .then((data) => {
         expect(data.id).to.be.eql(userData.testuser.user_id);
         expect(data.username).to.be.eql(usersFixtures.testuser.username);
         expect(data.email).to.be.eql(usersFixtures.testuser.email);
         done();
-      }).catch(err => {
+      }).catch((err) => {
         done(err);
-      })
+      });
   });
 
   it('Get User by Id should not work with invalid user id', (done) => {
     getUserById('invalid_id')
-      .then(data => {
+      .then((data) => {
         expect(data).be.eql(undefined);
         done();
-      }).catch(err => {
+      }).catch((err) => {
         done(err);
-      })
+      });
   });
 
   it('Get User by username should work', (done) => {
     getUserByUsername(userData.testuser.username)
-      .then(data => {
+      .then((data) => {
         expect(data.id).to.be.eql(userData.testuser.user_id);
         expect(data.username).to.be.eql(usersFixtures.testuser.username);
         expect(data.email).to.be.eql(usersFixtures.testuser.email);
         done();
-      }).catch(err => {
+      }).catch((err) => {
         done(err);
       });
   });
 
   it('Get User by username should not work with invalid username', (done) => {
     getUserByUsername('invalid_username')
-      .then(data => {
+      .then((data) => {
         expect(data).be.eql(undefined);
         done();
-      }).catch(err => {
+      }).catch((err) => {
         done(err);
       });
   });
 
   it('Validate Password should work for correct username and password', (done) => {
     validatePassword(usersFixtures.testuser.username, usersFixtures.testuser.password)
-    .then(() => done())
-    .catch(err => done(err));
+      .then(() => done())
+      .catch(err => done(err));
   });
 
   it('Validate Password should not work for correct username and incorrect password', (done) => {
     validatePassword(usersFixtures.testuser.username, 'invalid_password')
       .then(() => {
-        done('password validate successfully when it was expected not to')
-      }).catch(err => done());
+        done('password validate successfully when it was expected not to');
+      })
+      .catch((err) => {
+        expect(err).to.be.not.eql(undefined);
+        done();
+      });
   });
 
   it('Validate Password should not work for incorrect username and correct password', (done) => {
     validatePassword('invalid_username', usersFixtures.testuser.password)
       .then(() => {
-        done('password validate successfully when it was expected not to')
-      }).catch(err => done());
+        done('password validate successfully when it was expected not to');
+      })
+      .catch((err) => {
+        expect(err).to.be.not.eql(undefined);
+        done();
+      });
   });
 
   it('Validate Password should not work for incorrect username and incorrect password', (done) => {
     validatePassword('invalid_username', 'invalid_password')
       .then(() => {
-        done('password validate successfully when it was expected not to')
-      }).catch(err => done());
+        done('password validate successfully when it was expected not to');
+      })
+      .catch((err) => {
+        expect(err).to.be.not.eql(undefined);
+        done();
+      });
   });
 });
 

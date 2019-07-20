@@ -22,12 +22,12 @@ const userHandler = {};
  * @param string id
  * @param function callback(error, data)
  */
-const getUserById = (id, callback) => {
-  if(!id) {
-    Promise.reject('Missing required values.');
+const getUserById = (id) => {
+  if (!id) {
+    Promise.reject(new Error('Missing required values.'));
   }
   return dbRead('users', id, ['id', 'username', 'email'])
-    .then(res => res.rows[0])
+    .then(res => res.rows[0]);
 };
 
 /**
@@ -36,12 +36,12 @@ const getUserById = (id, callback) => {
  * @param string username
  * @param function callback(error, data)
  */
-const getUserByUsername = (username, callback) => {
-  if(!username) {
-    Promise.reject('Missing required values.');
+const getUserByUsername = (username) => {
+  if (!username) {
+    Promise.reject(new Error('Missing required values.'));
   }
   return dbReadSelectors('users', { username }, ['id', 'username', 'email'])
-    .then(res => res.rows[0])
+    .then(res => res.rows[0]);
 };
 
 /**
@@ -52,15 +52,15 @@ const getUserByUsername = (username, callback) => {
  */
 userHandler.getUserHandler = (id, callback) => {
   getUserById(id)
-    .then(user => {
-      if(user){
+    .then((user) => {
+      if (user) {
         callback(200, user);
       } else {
-        callback(404, {Error : "User Not found"});
+        callback(404, { Error: 'User Not found' });
       }
-    }).catch(err => {
+    }).catch((err) => {
       callback(500, { Error: err });
-    })
+    });
 };
 
 /**
@@ -99,19 +99,19 @@ userHandler.createUser = (data, callback) => {
 const validatePassword = (username, userPassword) => {
   let password = sanitize(userPassword, 'string', 6);
   password = hash(password);
-  if(!username || !password) {
-    return Promise.reject('Missing required values');
+  if (!username || !password) {
+    return Promise.reject(new Error('Missing required values'));
   }
   return new Promise((resolve, reject) => {
     dbReadSelectors('users', { username, password }, ['id'])
-      .then(res => {
-        if(res.rows.length) {
-          resolve(res.rows[0].id)
+      .then((res) => {
+        if (res.rows.length) {
+          resolve(res.rows[0].id);
         } else {
-          reject('Could not validate given username and password');
+          reject(new Error('Could not validate given username and password'));
         }
-      })
-  })
+      });
+  });
 };
 
 /**
@@ -126,7 +126,7 @@ userHandler.changePassword = (id, data, callback) => {
   if (id && password && oldPassword) {
     getUserById(id)
       .then(user => validatePassword(user.username, oldPassword))
-      .then(id => {
+      .then((id) => {
         password = hash(password);
         oldPassword = hash(oldPassword);
         dbUpdateSelector('users', { id, password: oldPassword }, { password })
@@ -135,9 +135,9 @@ userHandler.changePassword = (id, data, callback) => {
           }).catch(() => {
             callback(500, { Error: 'Could not change your password' });
           });
-      }).catch(err => {
+      }).catch((err) => {
         callback(404, { Error: err });
-      })
+      });
   } else {
     callback(400, { Error: 'Missing required values.' });
   }

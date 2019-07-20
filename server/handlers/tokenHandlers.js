@@ -20,13 +20,13 @@ const tokenHandler = {};
  * @param string id
  * @param function callback(err, status, data)
  */
-const getTokenById = (id, callback) => {
-  if(!id) {
-    return Promise.reject('Missing required values');
+const getTokenById = (id) => {
+  if (!id) {
+    return Promise.reject(new Error('Missing required values'));
   }
 
   return dbRead('tokens', id, ['id', 'username', 'user_id', 'expires'])
-    .then(res => res.rows[0])
+    .then(res => res.rows[0]);
 };
 
 /**
@@ -41,28 +41,28 @@ tokenHandler.createToken = (data, callback) => {
   const id = uuid();
   if (username && password && id) {
     validatePassword(username, password)
-      .then(userId => {
+      .then((userId) => {
         const expires = Date.now() + 60 * 60 * 1000;
         dbCreate('tokens', {
           username, id, expires, user_id: userId,
         })
           .then(() => {
             getTokenById(id)
-              .then(token => {
-                if(token) {
+              .then((token) => {
+                if (token) {
                   callback(200, token);
                 } else {
                   callback(404, { Error: 'Could not retrive the created token' });
                 }
-              }).catch(e => {
-                callback(500, e)
-              })
+              }).catch((e) => {
+                callback(500, e);
+              });
           }).catch(() => {
             callback(500, { Error: 'Error writing in database' });
           });
-      }).catch(error => {
-        callback(403, error);//{ Error: 'Failed to validate your password' });
-      })
+      }).catch((error) => {
+        callback(403, error);// { Error: 'Failed to validate your password' });
+      });
   } else {
     callback(400, { Error: 'Missing required values' });
   }
@@ -76,15 +76,15 @@ tokenHandler.createToken = (data, callback) => {
  */
 tokenHandler.getTokenHandler = (id, callback) => {
   getTokenById(id)
-    .then(token => {
-      if(token) {
+    .then((token) => {
+      if (token) {
         callback(200, token);
       } else {
         callback(404, { Error: 'Could not find the token!' });
       }
-    }).catch(err => {
+    }).catch((err) => {
       callback(500, err);
-    })
+    });
 };
 
 /**
@@ -96,8 +96,8 @@ tokenHandler.getTokenHandler = (id, callback) => {
 tokenHandler.extendToken = (id, callback) => {
   if (id) {
     getTokenById(id)
-      .then(token => {
-        if(!token) {
+      .then((token) => {
+        if (!token) {
           callback(404, { Error: 'Could not get the token specified' });
         }
         if (token.expires > Date.now()) {
@@ -111,9 +111,9 @@ tokenHandler.extendToken = (id, callback) => {
         } else {
           callback(403, { Error: 'Token already expired' });
         }
-      }).catch(err => {
-        callback(500, err)
-      })
+      }).catch((err) => {
+        callback(500, err);
+      });
   } else {
     callback(400, { Error: 'Missing required values' });
   }
@@ -128,8 +128,8 @@ tokenHandler.extendToken = (id, callback) => {
 tokenHandler.removeToken = (id, callback) => {
   if (id) {
     getTokenById(id)
-      .then(token => {
-        if(!token) {
+      .then((token) => {
+        if (!token) {
           callback(404, { Error: 'Could not get the token specified' });
         }
         dbRemove('tokens', id)
@@ -138,9 +138,9 @@ tokenHandler.removeToken = (id, callback) => {
           }).catch(() => {
             callback(500, { Error: 'Could not delete your token' });
           });
-      }).catch(err => {
-        callback(500, err)
-      })
+      }).catch((err) => {
+        callback(500, err);
+      });
   } else {
     callback(400, { Error: 'Missing required values' });
   }
@@ -186,8 +186,8 @@ const authenticate = (req, res, next) => {
   const requestToken = req.headers.token;
   if (requestToken) {
     getTokenById(requestToken)
-      .then(token => {
-        if(token) {
+      .then((token) => {
+        if (token) {
           verifyToken(requestToken, token.username, (err) => {
             if (!err) {
               req.user = token.username;
@@ -198,11 +198,11 @@ const authenticate = (req, res, next) => {
             }
           });
         } else {
-          res.status(403).json({Error: 'Token doesnot exists!'}).end();
+          res.status(403).json({ Error: 'Token doesnot exists!' }).end();
         }
-      }).catch(err => {
-        res.status(500).end({Error: 'Could not validate the token'});
-      })
+      }).catch(() => {
+        res.status(500).end({ Error: 'Could not validate the token' });
+      });
   } else {
     res.status(403).end({ Error: 'Token not provided' });
   }

@@ -97,15 +97,15 @@ describe('Token routes test', () => {
           expect(res.status).to.be.eql(200);
           expect(res.body).to.be.eql('');
           getTokenById(userData.testuser.id)
-            .then(data => {
+            .then((data) => {
               expect(Number.parseInt(data.expires, 10)).to.be.greaterThan(
                 requestTime + 3600000,
               );
               done();
-            }).catch(err => {
+            }).catch((err) => {
               done(err);
-            })
-          });
+            });
+        });
     });
 
     it('It should not be possible to extend token without token', (done) => {
@@ -117,14 +117,14 @@ describe('Token routes test', () => {
           expect(res.status).to.be.eql(403);
           expect(res.body).to.be.eql({});
           getTokenById(userData.testuser.id)
-            .then(data => {
+            .then((data) => {
               expect(Number.parseInt(data.expires, 10)).to.be.lessThan(
                 requestTime + 3600000,
               );
               done();
-            }).catch(err => {
+            }).catch((err) => {
               done(new Error(JSON.stringify(err)));
-            })
+            });
         });
     });
   });
@@ -141,15 +141,15 @@ describe('Token routes test', () => {
           verifyToken(res.body.id, usersFixtures.testuser.username, (err) => {
             if (err) {
               getTokenById(userData.testuser.username)
-                .then(data => {
-                  if(data) {
+                .then((data) => {
+                  if (data) {
                     done(
                       new Error('Token still exists when it should be deleted'),
                     );
                   } else {
                     done();
                   }
-                })
+                });
             } else {
               done(new Error('Token still exists when it should be deleted'));
             }
