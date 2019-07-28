@@ -48,6 +48,20 @@ exports.up = function (db) {
           mapping: 'id',
         },
       },
+      parent: {
+        type: 'string',
+        length: '64',
+        null: true,
+        foreignKey: {
+          name: 'post_parent_id_fk',
+          table: 'posts',
+          rules: {
+            onDelete: 'CASCADE',
+            onUpdate: 'RESTRICT',
+          },
+          mapping: 'id',
+        },
+      },
       created: {
         type: 'string',
         length: 64,
