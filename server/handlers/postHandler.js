@@ -27,7 +27,7 @@ const getPostById = (postId) => {
     if (!id) {
       reject(new Error('Missing required values.'));
     }
-    dbRead('posts', id, ['id', 'author', 'title', 'content', 'created', 'modified'])
+    dbRead('posts', id, ['id', 'author', 'title', 'content', 'created', 'modified', 'parent'])
       .then((res) => {
         if (res.rows.length) {
           const data = res.rows[0];
@@ -48,6 +48,83 @@ const getPostById = (postId) => {
 };
 
 /**
+ * function to get all child posts (replies) for a post
+ *
+ * @param string postId
+ * @param Number limit  - Limit for number of childs in one level
+ * @param Number depthLimit  - Limit for how deep to look for child posts
+ * @param Number depth - Recusion depth value for breaking recursion
+ *
+ * @return Promise
+ */
+const getChildPosts = (postId, limit = 3, depthLimit = 3, depth = 1) => {
+  if (depth > depthLimit) {
+    return Promise.resolve([]);
+  }
+  const id = sanitize(postId, 'string');
+  const promises = [];
+  let data = [];
+
+  return dbReadSelectors('posts', { parent: id })
+    .then((res) => {
+      data = res.rows.slice(0, limit);
+      return data.forEach((post, index) => {
+        promises.push(getUserById(post.author)
+          .then((user) => {
+            data[index].author = user;
+          })
+          .then(() => getChildPosts(post.id, limit, depthLimit, depth + 1))
+          .then((child) => {
+            [data[index].children] = child;
+            return data;
+          }));
+      });
+    })
+    .then(() => Promise.all(promises));
+};
+
+/**
+ * function to get a post with its child posts (replies) for a post
+ *
+ * @param string postId
+ * @param Number limit  - Limit for number of childs in one level
+ * @param Number depth  - Limit for how deep to look for child posts
+ *
+ * @return Promise
+ */
+const getPostWithChilds = (postId, limit = 3, depth = 0) => {
+  const id = sanitize(postId, 'string');
+
+  return new Promise((resolve, reject) => {
+    if (!id) {
+      reject(new Error('Missing required values.'));
+    }
+    dbRead('posts', id)
+      .then((res) => {
+        const data = res.rows;
+        if (data.length) {
+          data.forEach((post, index) => {
+            getUserById(post.author)
+              .then((user) => {
+                data[index].author = user;
+              })
+              .then(() => getChildPosts(post.id, limit, depth))
+              .then((child) => {
+                [data[index].children] = child;
+                resolve(data[0]);
+              })
+              .catch(err => reject(err));
+          });
+        } else {
+          resolve();
+        }
+      }).catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+/**
  * function to get all posts for given user
  *
  * @param function callback(error, data)
@@ -55,7 +132,7 @@ const getPostById = (postId) => {
 postHandler.getPosts = (userId, callback) => {
   const user = sanitize(userId, 'string');
   if (user) {
-    dbReadSelectors('posts', { author: user }, ['id', 'author', 'title', 'content', 'created', 'modified'])
+    dbReadSelectors('posts', { author: user })
       .then((res) => {
         callback(200, res.rows);
       }).catch(() => {
@@ -66,14 +143,15 @@ postHandler.getPosts = (userId, callback) => {
   }
 };
 
+
 /**
  * Handler for returning one post
  *
  * @param string id
  * @param function callback(status, data)
  */
-postHandler.getPostHandler = (id, callback) => {
-  getPostById(id)
+postHandler.getPostHandler = (id, depth, limit, callback) => {
+  getPostWithChilds(id, limit, depth)
     .then((post) => {
       const status = post ? 200 : 404;
       const postData = post || {};
@@ -95,19 +173,20 @@ postHandler.createPost = (user, data, callback) => {
   const title = sanitize(data.title, 'string');
   const created = String(Date.now());
   const content = sanitize(data.content, 'string');
+  const parent = data.parent || null;
   if (author && id && title && created && content) {
     dbCreate('posts', {
-      author, id, content, title, created, modified: created,
+      author, id, content, title, created, parent, modified: created,
     })
       .then(() => {
         getPostById(id)
           .then((data) => {
             callback(200, false, data);
-          }).catch(() => {
-            callback(500, { Error: 'Error while reading post' });
+          }).catch((err) => {
+            callback(500, { Error: err });
           });
-      }).catch(() => {
-        callback(500, { Error: 'Error writing in database!' });
+      }).catch((err) => {
+        callback(500, { Error: err });
       });
   } else {
     callback(400, { Error: 'Missing required values.' });

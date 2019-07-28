@@ -34,7 +34,9 @@ postController.getPosts = (req, res) => {
  * Handler for returning one post
  */
 postController.getPost = (req, res) => {
-  getPostHandler(req.params.id, (status = 200, data) => {
+  const depth = Number(req.query.depth) || 0;
+  const limit = Number(req.query.limit) || 3;
+  getPostHandler(req.params.id, depth, limit, (status = 200, data) => {
     if (req.post === data.postname) {
       res.status(status).json(data).end();
     } else {
