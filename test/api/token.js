@@ -80,7 +80,7 @@ describe('Token routes test', () => {
         .get(`/token/${userData.testuser.id}`)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           done();
         });
     });
@@ -115,7 +115,7 @@ describe('Token routes test', () => {
         .put(`/token/${userData.testuser.id}`)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           getTokenById(userData.testuser.id)
             .then((data) => {
               expect(Number.parseInt(data.expires, 10)).to.be.lessThan(
@@ -163,7 +163,7 @@ describe('Token routes test', () => {
         .delete(`/token/${userData.testuser.id}`)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           verifyToken(
             userData.testuser.id,
             usersFixtures.testuser.username,

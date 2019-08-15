@@ -201,10 +201,10 @@ const authenticate = (req, res, next) => {
           res.status(403).json({ Error: 'Token doesnot exists!' }).end();
         }
       }).catch(() => {
-        res.status(500).end({ Error: 'Could not validate the token' });
+        res.status(500).json({ Error: 'Could not validate the token' }).end();
       });
   } else {
-    res.status(403).end({ Error: 'Token not provided' });
+    res.status(403).json({ Error: 'Token not provided' }).end();
   }
 };
 
