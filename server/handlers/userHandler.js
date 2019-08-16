@@ -27,7 +27,7 @@ const getUserById = (id) => {
     Promise.reject(new Error('Missing required values.'));
   }
   return dbRead('users', id, ['id', 'username', 'email'])
-    .then(res => res.rows[0]);
+    .then((res) => res.rows[0]);
 };
 
 /**
@@ -41,7 +41,7 @@ const getUserByUsername = (username) => {
     Promise.reject(new Error('Missing required values.'));
   }
   return dbReadSelectors('users', { username }, ['id', 'username', 'email'])
-    .then(res => res.rows[0]);
+    .then((res) => res.rows[0]);
 };
 
 /**
@@ -125,7 +125,7 @@ userHandler.changePassword = (id, data, callback) => {
   let oldPassword = sanitize(data.password, 'string', 6);
   if (id && password && oldPassword) {
     getUserById(id)
-      .then(user => validatePassword(user.username, oldPassword))
+      .then((user) => validatePassword(user.username, oldPassword))
       .then((id) => {
         password = hash(password);
         oldPassword = hash(oldPassword);

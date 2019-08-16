@@ -26,7 +26,7 @@ const getTokenById = (id) => {
   }
 
   return dbRead('tokens', id, ['id', 'username', 'user_id', 'expires'])
-    .then(res => res.rows[0]);
+    .then((res) => res.rows[0]);
 };
 
 /**

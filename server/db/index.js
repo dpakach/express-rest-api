@@ -18,7 +18,7 @@ const dbHandler = {
  */
 dbHandler.dbCreate = function (tableName, data) {
   const keys = Object.keys(data).join(',');
-  const values = Object.keys(data).map(k => data[k]);
+  const values = Object.keys(data).map((k) => data[k]);
   const valuesPlaceholder = values.map((_, i) => `$${i + 1}`).join(',');
   const queryText = `INSERT INTO "${tableName}" (${keys}) VALUES(${valuesPlaceholder});`;
   return dbHandler.query(queryText, values);
@@ -47,7 +47,7 @@ dbHandler.dbRemove = function (tableName, id) {
  * @return Promise
  */
 dbHandler.dbUpdate = function (tableName, id, data) {
-  const values = Object.keys(data).map(k => data[k]);
+  const values = Object.keys(data).map((k) => data[k]);
   const updateValues = Object.keys(data).map((k, i) => `${k}=$${i + 1}`).join(',');
   const queryText = `UPDATE "${tableName}" SET ${updateValues} where id like $${values.length + 1}`;
   return dbHandler.query(queryText, [...values, id]);
@@ -63,8 +63,8 @@ dbHandler.dbUpdate = function (tableName, id, data) {
  * @return Promise
  */
 dbHandler.dbUpdateSelector = function (tableName, selectors, data) {
-  const updateValues = Object.keys(data).map(k => data[k]);
-  const selectorValues = Object.keys(selectors).map(k => selectors[k]);
+  const updateValues = Object.keys(data).map((k) => data[k]);
+  const selectorValues = Object.keys(selectors).map((k) => selectors[k]);
   const updateText = Object.keys(data).map((k, i) => `${k} = $${i + 1}`).join(',');
   const selectorText = Object.keys(selectors).map((s, i) => `${s} = $${i + 1 + updateValues.length}`).join(' and ');
   const queryText = `UPDATE "${tableName}" SET ${updateText} where ${selectorText};`;
@@ -107,7 +107,7 @@ dbHandler.dbReadSelectors = function (tableName, selectors, values) {
   } else {
     queryValues = values.join(',');
   }
-  const selectorValues = Object.keys(selectors).map(k => selectors[k]);
+  const selectorValues = Object.keys(selectors).map((k) => selectors[k]);
   const selectorText = Object.keys(selectors).map((s, i) => `${s} LIKE $${i + 1}`).join(' AND ');
   const queryText = `SELECT ${queryValues} FROM ${tableName} WHERE ${selectorText}`;
   return dbHandler.query(queryText, selectorValues);

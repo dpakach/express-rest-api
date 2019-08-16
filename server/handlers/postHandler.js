@@ -113,7 +113,7 @@ const getPostWithChilds = (postId, limit = 3, depth = 0) => {
                 [data[index].children] = child;
                 resolve(data[0]);
               })
-              .catch(err => reject(err));
+              .catch((err) => reject(err));
           });
         } else {
           resolve();
