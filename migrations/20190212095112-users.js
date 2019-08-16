@@ -49,7 +49,7 @@ exports.up = (db, callback) => {
   );
 };
 
-exports.down = db => db.dropTable('users');
+exports.down = (db) => db.dropTable('users');
 
 /* eslint-disable */
 exports._meta = {

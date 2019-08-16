@@ -26,7 +26,7 @@ describe('User routes test', () => {
         userData.testuser = data;
         done();
       })
-      .catch(e => done(new Error(e)));
+      .catch((e) => done(new Error(e)));
   });
 
   describe('/POST user works', () => {
@@ -147,7 +147,7 @@ describe('Password routes test', () => {
         userData.testuser = data;
         done();
       })
-      .catch(e => done(new Error(e)));
+      .catch((e) => done(new Error(e)));
   });
 
   describe('/POST user password works', () => {

@@ -45,7 +45,7 @@ exports.up = (db, callback) => {
   );
 };
 
-exports.down = db => db.dropTable('tokens');
+exports.down = (db) => db.dropTable('tokens');
 
 /* eslint-disable */
 exports._meta = {

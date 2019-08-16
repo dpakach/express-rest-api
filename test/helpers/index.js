@@ -17,7 +17,7 @@ helpers.dropAllTables = (done) => {
   });
 };
 
-helpers.createTestUser = user => new Promise((resolve, reject) => {
+helpers.createTestUser = (user) => new Promise((resolve, reject) => {
   if (!usersFixtures.hasOwnProperty(user)) {
     reject(new Error(`Could not find test user with username ${user.toString()}`));
   }

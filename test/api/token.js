@@ -23,7 +23,7 @@ describe('Token routes test', () => {
         userData.testuser = data;
         done();
       })
-      .catch(e => done(new Error(e)));
+      .catch((e) => done(new Error(e)));
   });
 
   describe('/POST token works', () => {

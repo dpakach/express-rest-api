@@ -72,7 +72,7 @@ describe('Token related functions should work', () => {
         userData.testuser = data;
         done();
       })
-      .catch(e => done(new Error(e)));
+      .catch((e) => done(new Error(e)));
   });
 
   it('Verify Token Should not give error on using correct token', (done) => {
@@ -137,7 +137,7 @@ describe('User related functions should work', () => {
         userData.testuser = data;
         done();
       })
-      .catch(e => done(new Error(e)));
+      .catch((e) => done(new Error(e)));
   });
 
   it('Get User by Id should work', (done) => {
@@ -187,7 +187,7 @@ describe('User related functions should work', () => {
   it('Validate Password should work for correct username and password', (done) => {
     validatePassword(usersFixtures.testuser.username, usersFixtures.testuser.password)
       .then(() => done())
-      .catch(err => done(err));
+      .catch((err) => done(err));
   });
 
   it('Validate Password should not work for correct username and incorrect password', (done) => {
