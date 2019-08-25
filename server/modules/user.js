@@ -45,48 +45,22 @@ const getUserByUsername = (username) => {
 };
 
 /**
- * Handler for returning one user
- *
- * @param string id
- * @param function callback(status, data)
- */
-userHandler.getUserHandler = (id, callback) => {
-  getUserById(id)
-    .then((user) => {
-      if (user) {
-        callback(200, user);
-      } else {
-        callback(404, { Error: 'User Not found' });
-      }
-    }).catch((err) => {
-      callback(500, { Error: err });
-    });
-};
-
-/**
  * Handler for creating user
  *
  * @param object data, an object containing user data
- * @param function callback(status, data)
  */
-userHandler.createUser = (data, callback) => {
+userHandler.createUser = (data) => {
   const username = sanitize(data.username, 'string', 6);
   const email = sanitize(data.email, 'string', 6);
   let password = sanitize(data.password, 'string', 6);
   const id = uuid();
   password = hash(password);
-  if (username && password && email && id) {
-    dbCreate('users', {
-      id, username, password, email,
-    })
-      .then(() => {
-        callback(200, false);
-      }).catch(() => {
-        callback(400, { Error: 'Error writing in database!' });
-      });
-  } else {
-    callback(400, { Error: 'Missing required values.' });
+  if (!(username && password && email && id)) {
+    return Promise.reject('Missing required values.')
   }
+  return dbCreate('users', {
+    id, username, password, email,
+  })
 };
 
 /**
@@ -118,29 +92,21 @@ const validatePassword = (username, userPassword) => {
  * Handler for changing password
  *
  * @param object data, an object containing user data
- * @param function callback(err, status)
  */
-userHandler.changePassword = (id, data, callback) => {
+userHandler.changePassword = (id, data) => {
   let password = sanitize(data.newPassword, 'string', 6);
   let oldPassword = sanitize(data.password, 'string', 6);
-  if (id && password && oldPassword) {
-    getUserById(id)
-      .then(user => validatePassword(user.username, oldPassword))
-      .then((id) => {
-        password = hash(password);
-        oldPassword = hash(oldPassword);
-        dbUpdateSelector('users', { id, password: oldPassword }, { password })
-          .then(() => {
-            callback(200);
-          }).catch(() => {
-            callback(500, { Error: 'Could not change your password' });
-          });
-      }).catch((err) => {
-        callback(404, { Error: err });
-      });
-  } else {
-    callback(400, { Error: 'Missing required values.' });
+  if (!(id && password && oldPassword)) {
+    return Promise.reject(new Error('Missing required values'));
   }
+
+  return getUserById(id)
+    .then(user => validatePassword(user.username, oldPassword))
+    .then((id) => {
+      password = hash(password);
+      oldPassword = hash(oldPassword);
+      return dbUpdateSelector('users', { id, password: oldPassword }, { password })
+    })
 };
 
 userHandler.getUserById = getUserById;

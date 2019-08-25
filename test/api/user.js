@@ -37,7 +37,7 @@ describe('User routes test', () => {
         .send(usersFixtures.testuser2)
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body).to.be.eqls(false);
+          expect(res.body).to.be.eqls({});
           getUserByUsername(usersFixtures.testuser2.username)
             .then((data) => {
               expect(data.username).to.be.eql(usersFixtures.testuser2.username);
@@ -164,7 +164,7 @@ describe('Password routes test', () => {
         })
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body).to.be.eql('');
+          expect(res.body).to.be.eql({});
           validatePassword(userData.testuser.username, newPassword)
             .then(() => done())
             .catch((err) => {
