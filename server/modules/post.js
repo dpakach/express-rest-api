@@ -110,7 +110,6 @@ const getPostWithChilds = (postId, limit = 3, depth = 0) => {
               .then(() => getChildPosts(post.id, limit, depth))
               .then((child) => {
                 [data[index].children] = child;
-                console.log(data)
                 resolve(data[0]);
               })
               .catch(err => reject(err));

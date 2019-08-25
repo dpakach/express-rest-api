@@ -16,5 +16,10 @@ app.use(bodyParser.urlencoded({
 // use the router
 app.use('/', router);
 
+app.use((err, req, res, next) => {
+  console.log(err)
+  res.json({Error: err}).end()
+})
+
 // Export the app
 module.exports = app;
