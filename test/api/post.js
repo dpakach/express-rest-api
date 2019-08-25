@@ -6,7 +6,7 @@ const server = require('../../start');
 const {
   createPost,
   getPostById,
-} = require('../../server/handlers/postHandler');
+} = require('../../server/modules/post');
 
 const { createTestUser } = require('../helpers');
 
@@ -100,14 +100,13 @@ describe('Post routes test', () => {
 
     getPostData = {};
     beforeEach((done) => {
-      createPost(userData.testuser.user_id, postData, (status, err, data) => {
-        if (status === 200 && !err && data) {
+      createPost(userData.testuser.user_id, postData)
+        .then(data => {
           getPostData = data;
-          done();
-        } else {
-          done(new Error(err.Error));
-        }
-      });
+          done()
+        }).catch(err => {
+          done(err);
+        })
     });
 
     it('It should be possible to get post', (done) => {
@@ -171,14 +170,13 @@ describe('Post routes test', () => {
 
     getPostData = {};
     beforeEach((done) => {
-      createPost(userData.testuser.user_id, postData, (status, err, data) => {
-        if (status === 200 && !err && data) {
+      createPost(userData.testuser.user_id, postData)
+        .then(data => {
           getPostData = data;
-          done();
-        } else {
-          done(new Error(err.Error));
-        }
-      });
+          done()
+        }).catch(err => {
+          done(err);
+        })
     });
     it('It should be possible to update post', (done) => {
       requestTime = Date.now();
@@ -243,14 +241,13 @@ describe('Post routes test', () => {
 
     getPostData = {};
     beforeEach((done) => {
-      createPost(userData.testuser.user_id, postData, (status, err, data) => {
-        if (status === 200 && !err && data) {
+      createPost(userData.testuser.user_id, postData)
+        .then(data => {
           getPostData = data;
-          done();
-        } else {
-          done(new Error(err.Error));
-        }
-      });
+          done()
+        }).catch(err => {
+          done(err);
+        })
     });
     requestTime = Date.now();
     it('It should be possible to delete post', (done) => {

@@ -68,9 +68,8 @@ tokenHandler.removeToken = (id) => {
  *
  * @param String id
  * @param String username
- * @param function callback(err)
  */
-const verifyToken = (id, user, callback) => {
+const verifyToken = (id, user) => {
   const userId = sanitize(user, 'string', 6);
   return dbReadSelectors('tokens', { id, username: userId })
     .then(res => res.rows[0])

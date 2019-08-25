@@ -7,7 +7,7 @@ const server = require('../../start');
 const {
   verifyToken,
   getTokenById,
-} = require('../../server/handlers/tokenHandlers');
+} = require('../../server/modules/token');
 
 const usersFixtures = require('../fixtures/users.json');
 const { createTestUser } = require('../helpers');
@@ -63,13 +63,8 @@ describe('Token routes test', () => {
           expect(res.body).to.haveOwnProperty('id');
           expect(res.body).to.haveOwnProperty('user_id');
           expect(res.body).to.haveOwnProperty('expires');
-          verifyToken(res.body.id, usersFixtures.testuser.username, (err) => {
-            if (!err) {
-              done();
-            } else {
-              done(new Error(JSON.stringify(err)));
-            }
-          });
+          verifyToken(res.body.id, usersFixtures.testuser.username)
+          .then(done()).catch(err => done(err));
         });
     });
 
@@ -138,8 +133,11 @@ describe('Token routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
           expect(res.body).to.be.eql({});
-          verifyToken(res.body.id, usersFixtures.testuser.username, (err) => {
-            if (err) {
+          verifyToken(res.body.id, usersFixtures.testuser.username)
+            .then(() => {
+              done(new Error('Token still exists when it should be deleted'));
+            })
+            .catch(err => {
               getTokenById(userData.testuser.username)
                 .then((data) => {
                   if (data) {
@@ -150,10 +148,7 @@ describe('Token routes test', () => {
                     done();
                   }
                 });
-            } else {
-              done(new Error('Token still exists when it should be deleted'));
-            }
-          });
+            });
         });
     });
 
@@ -164,17 +159,9 @@ describe('Token routes test', () => {
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
           expect(res.body.Error).not.to.be.eql(undefined);
-          verifyToken(
-            userData.testuser.id,
-            usersFixtures.testuser.username,
-            (err) => {
-              if (!err) {
-                done();
-              } else {
-                done(new Error('Token should exist but not found'));
-              }
-            },
-          );
+          verifyToken(userData.testuser.id, usersFixtures.testuser.username)
+            .then(done())
+            .catch(err => done(err));
         });
     });
 
