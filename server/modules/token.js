@@ -9,7 +9,7 @@ const {
   dbCreate, dbRead, dbRemove, dbUpdate, dbReadSelectors,
 } = require('../db');
 const { sanitize } = require('../utils');
-const { validatePassword, getUserByUsername, getUserById } = require('../handlers/userHandler');
+const { validatePassword, getUserByUsername, getUserById } = require('../modules/user');
 
 // create user handler object
 const tokenHandler = {};
@@ -70,49 +70,41 @@ tokenHandler.removeToken = (id) => {
  * @param String username
  */
 const verifyToken = (id, user) => {
-  const userId = sanitize(user, 'string', 6);
-  return dbReadSelectors('tokens', { id, username: userId })
+  const username = sanitize(user, 'string', 6);
+  return dbReadSelectors('tokens', { id, username })
     .then(res => res.rows[0])
     .then(token => {
       if(!token) {
         return Promise.reject('Token not Found')
       }
+      if (token.expires < Date.now()) {
+        return Promise.reject('Token already expired')
+      }
     })
 };
 
-/**
- * function for authenticating the user
- *
- * @param req
- * @param res
- * @param function next
- */
 const authenticate = (req, res, next) => {
   const requestToken = req.headers.token;
-  if (requestToken) {
-    getTokenById(requestToken)
-      .then((token) => {
-        if (token) {
-          verifyToken(requestToken, token.username, (err) => {
-            if (!err) {
-              req.user = token.username;
-              req.user_id = token.user_id;
-              next();
-            } else {
-              res.status(403).json({ Error: err }).end();
-            }
-          });
-        } else {
-          res.status(403).json({ Error: 'Token doesnot exists!' }).end();
-        }
-      }).catch(() => {
-        res.status(500).json({ Error: 'Could not validate the token' }).end();
-      });
-  } else {
-    res.status(403).json({ Error: 'Token not provided' }).end();
+  if(!requestToken) {
+    return res.status(403).json({ Error: 'Token not provided' }).end();
   }
-};
-
+  getTokenById(requestToken)
+    .then(token => {
+      if(!token) {
+        return res.status(403).json({ Error: 'Token doesnot exists!' }).end();
+      }
+      verifyToken(requestToken, token.username)
+        .then(() => {
+          req.user = token.username;
+          req.user_id = token.user_id;
+          next();
+        }).catch((err) => {
+          res.status(403).json({ Error: err }).end();
+        })
+    }).catch(() => {
+      res.status(500).json({ Error: 'Could not validate the token' }).end();
+    });
+}
 
 // Add local functions for export
 tokenHandler.verifyToken = verifyToken;

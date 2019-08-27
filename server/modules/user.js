@@ -61,6 +61,7 @@ userHandler.createUser = (data) => {
   return dbCreate('users', {
     id, username, password, email,
   })
+  .then(() => getUserById(id))
 };
 
 /**

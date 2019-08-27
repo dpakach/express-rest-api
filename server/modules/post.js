@@ -10,7 +10,7 @@ const {
   dbCreate, dbRemove, dbRead, dbUpdate, dbReadSelectors,
 } = require('../db');
 const { sanitize } = require('../utils');
-const { getUserById } = require('../handlers/userHandler');
+const { getUserById } = require('../modules/user');
 
 // create post handler object
 const postHandler = {};

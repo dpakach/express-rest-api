@@ -1,4 +1,4 @@
-const {validatePassword} = require('../handlers/userHandler.js')
+const {validatePassword} = require('../modules/user.js')
 
 const {
   createToken,
