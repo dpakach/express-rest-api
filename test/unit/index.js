@@ -9,10 +9,10 @@ const assert = require('assert');
 const chai = require('chai');
 
 const utils = require('../../server/utils');
-const { verifyToken, getTokenById } = require('../../server/modules/token');
+const { verifyToken, getTokenById } = require('../../server/lib/token');
 const {
   getUserById, getUserByUsername, validatePassword,
-} = require('../../server/modules/user');
+} = require('../../server/lib/user');
 const usersFixtures = require('../fixtures/users.json');
 const { createTestUser } = require('../helpers');
 

@@ -7,7 +7,7 @@ const server = require('../../start');
 const {
   verifyToken,
   getTokenById,
-} = require('../../server/modules/token');
+} = require('../../server/lib/token');
 
 const usersFixtures = require('../fixtures/users.json');
 const { createTestUser } = require('../helpers');

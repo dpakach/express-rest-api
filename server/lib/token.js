@@ -9,7 +9,7 @@ const {
   dbCreate, dbRead, dbRemove, dbUpdate, dbReadSelectors,
 } = require('../db');
 const { sanitize } = require('../utils');
-const { validatePassword, getUserByUsername, getUserById } = require('../modules/user');
+const { validatePassword, getUserByUsername, getUserById } = require('./user');
 
 // create user handler object
 const tokenHandler = {};

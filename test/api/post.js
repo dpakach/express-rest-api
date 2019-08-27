@@ -6,7 +6,7 @@ const server = require('../../start');
 const {
   createPost,
   getPostById,
-} = require('../../server/modules/post');
+} = require('../../server/lib/post');
 
 const { createTestUser } = require('../helpers');
 

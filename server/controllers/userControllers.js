@@ -2,7 +2,7 @@ const {
   createUser,
   getUserById,
   changePassword
-} = require('../modules/user');
+} = require('../lib/user');
 
 const userController = {};
 

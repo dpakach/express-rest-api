@@ -5,7 +5,7 @@ const {
   deletePost,
   getPostsForUser,
   getPostWithChilds
-} = require('../modules/post');
+} = require('../lib/post');
 const { sanitize } = require('../utils');
 
 const postController = {};

@@ -10,7 +10,7 @@ const { query } = require('../../server/db');
 const {
   getUserByUsername,
   validatePassword,
-} = require('../../server/modules/user');
+} = require('../../server/lib/user');
 
 const usersFixtures = require('../fixtures/users.json');
 const { createTestUser } = require('../helpers');

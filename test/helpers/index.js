@@ -1,7 +1,7 @@
 const { query } = require('../../server/db');
 
-const { createUser } = require('../../server/modules/user');
-const { createToken } = require('../../server/modules/token');
+const { createUser } = require('../../server/lib/user');
+const { createToken } = require('../../server/lib/token');
 const usersFixtures = require('../fixtures/users.json');
 
 const helpers = {};

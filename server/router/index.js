@@ -10,7 +10,7 @@ const {
   postToken, getToken, deleteToken, putToken,
 } = require('../controllers/tokenController');
 
-const { authenticate } = require('../modules/token');
+const { authenticate } = require('../lib/token');
 
 router.get('/ping', (req, res) => {
   res.status(200).end();

@@ -1,11 +1,11 @@
-const {validatePassword} = require('../modules/user.js')
+const {validatePassword} = require('../lib/user.js')
 
 const {
   createToken,
   removeToken,
   extendToken,
   getTokenById
-} = require('../modules/token');
+} = require('../lib/token');
 const { sanitize } = require('../utils');
 
 const tokenController = {};
