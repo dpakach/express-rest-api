@@ -101,12 +101,12 @@ describe('Post routes test', () => {
     getPostData = {};
     beforeEach((done) => {
       createPost(userData.testuser.user_id, postData)
-        .then(data => {
+        .then((data) => {
           getPostData = data;
-          done()
-        }).catch(err => {
+          done();
+        }).catch((err) => {
           done(err);
-        })
+        });
     });
 
     it('It should be possible to get post', (done) => {
@@ -171,12 +171,12 @@ describe('Post routes test', () => {
     getPostData = {};
     beforeEach((done) => {
       createPost(userData.testuser.user_id, postData)
-        .then(data => {
+        .then((data) => {
           getPostData = data;
-          done()
-        }).catch(err => {
+          done();
+        }).catch((err) => {
           done(err);
-        })
+        });
     });
     it('It should be possible to update post', (done) => {
       requestTime = Date.now();
@@ -242,12 +242,12 @@ describe('Post routes test', () => {
     getPostData = {};
     beforeEach((done) => {
       createPost(userData.testuser.user_id, postData)
-        .then(data => {
+        .then((data) => {
           getPostData = data;
-          done()
-        }).catch(err => {
+          done();
+        }).catch((err) => {
           done(err);
-        })
+        });
     });
     requestTime = Date.now();
     it('It should be possible to delete post', (done) => {

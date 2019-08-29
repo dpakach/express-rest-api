@@ -112,7 +112,7 @@ const getPostWithChilds = (postId, limit = 3, depth = 0) => {
                 [data[index].children] = child;
                 resolve(data[0]);
               })
-              .catch(err => reject(err));
+              .catch((err) => reject(err));
           });
         } else {
           resolve();
@@ -129,7 +129,7 @@ const getPostWithChilds = (postId, limit = 3, depth = 0) => {
 const getPostsForUser = (userId, limit = 3, depth = 0) => {
   const user = sanitize(userId, 'string');
 
-  const promises = []
+  const promises = [];
 
   if (!user) {
     Promise.reject(new Error('Missing required values.'));
@@ -137,9 +137,9 @@ const getPostsForUser = (userId, limit = 3, depth = 0) => {
   return dbReadSelectors('posts', { author: user })
     .then((res) => {
       let data = res.rows;
-      data = data.filter(post => post.parent === null)
-      if(!data.length) {
-        return []
+      data = data.filter((post) => post.parent === null);
+      if (!data.length) {
+        return [];
       }
       return data.forEach((post, index) => {
         promises.push(
@@ -150,14 +150,12 @@ const getPostsForUser = (userId, limit = 3, depth = 0) => {
             .then(() => getChildPosts(post.id, limit, depth))
             .then((child) => {
               data[index].children = child;
-              return data[index]
-            })
-        )
+              return data[index];
+            }),
+        );
       });
     })
-    .then(() => {
-      return Promise.all(promises)
-    })
+    .then(() => Promise.all(promises));
 };
 
 /**
@@ -175,52 +173,48 @@ postHandler.createPost = (user, data) => {
   const parent = data.parent || null;
 
   if (!(author && id && title && created && content)) {
-    return Promise.reject('Missing required values')
+    return Promise.reject(new Error('Missing required values'));
   }
   return dbCreate('posts', {
     author, id, content, title, created, parent, modified: created,
   })
-    .then(() => getPostById(id))
+    .then(() => getPostById(id));
 };
 
 /**
  * Handler for editing post
  *
  * @param object data, an object containing post data
- * @param function callback(status, data)
  */
-postHandler.updatePost = (postId, data, callback) => {
+postHandler.updatePost = (postId, data) => {
   const id = sanitize(postId, 'string');
   let title = sanitize(data.title, 'string');
   let content = sanitize(data.content, 'string');
-  if(!id || (!title && !content)) {
-    return Promise.reject('Missing required values')
+  if (!id || (!title && !content)) {
+    return Promise.reject(new Error('Missing required values'));
   }
   return getPostById(id)
-    .then(post => {
+    .then((post) => {
       title = title || data.title;
       content = content || data.content;
       const modified = String(Date.now());
-      return dbUpdate('posts', id, {title, content, modified})
+      return dbUpdate('posts', post.id, { title, content, modified });
     })
-    .then(() => getPostById(id))
+    .then(() => getPostById(id));
 };
 
 /**
  * Handler for deleting post
  *
  * @param id
- * @param function callback(status, data)
  */
-postHandler.deletePost = (postId, callback) => {
+postHandler.deletePost = (postId) => {
   const id = sanitize(postId, 'string');
-  if(!id) {
-    return Promise.reject('Missing required values')
+  if (!id) {
+    return Promise.reject(new Error('Missing required values'));
   }
   return getPostById(id)
-    .then(post => {
-      return dbRemove('posts', id)
-    })
+    .then((post) => dbRemove('posts', post.id));
 };
 
 postHandler.getPostById = getPostById;

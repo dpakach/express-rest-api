@@ -1,7 +1,7 @@
 const {
   createUser,
   getUserById,
-  changePassword
+  changePassword,
 } = require('../lib/user');
 
 const userController = {};
@@ -13,7 +13,7 @@ userController.postUser = (req, res, next) => {
   createUser(req.body)
     .then(() => {
       res.status(200).end();
-    }).catch(next)
+    }).catch(next);
 };
 
 /**
@@ -21,11 +21,11 @@ userController.postUser = (req, res, next) => {
  */
 userController.getUser = (req, res, next) => {
   getUserById(req.params.id)
-    .then(user => {
-      if(!user){
+    .then((user) => {
+      if (!user) {
         return res.status(404).end();
       }
-      res.status(200).json(user).end();
+      return res.status(200).json(user).end();
     }).catch(next);
 };
 
@@ -34,7 +34,7 @@ userController.getUser = (req, res, next) => {
  */
 userController.postUserPassword = (req, res, next) => {
   changePassword(req.params.id, req.body)
-    .then(data => {
+    .then(() => {
       res.status(200).end();
     }).catch(next);
 };

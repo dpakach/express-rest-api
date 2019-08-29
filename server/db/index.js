@@ -21,7 +21,7 @@ dbHandler.dbCreate = function (tableName, data) {
   const values = Object.keys(data).map((k) => data[k]);
   const valuesPlaceholder = values.map((_, i) => `$${i + 1}`).join(',');
   const queryText = `INSERT INTO "${tableName}" (${keys}) VALUES(${valuesPlaceholder});`;
-  return dbHandler.query(queryText, values)
+  return dbHandler.query(queryText, values);
 };
 
 /**

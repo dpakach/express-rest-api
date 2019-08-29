@@ -64,7 +64,7 @@ describe('Token routes test', () => {
           expect(res.body).to.haveOwnProperty('user_id');
           expect(res.body).to.haveOwnProperty('expires');
           verifyToken(res.body.id, usersFixtures.testuser.username)
-          .then(done()).catch(err => done(err));
+            .then(done()).catch((err) => done(err));
         });
     });
 
@@ -137,7 +137,8 @@ describe('Token routes test', () => {
             .then(() => {
               done(new Error('Token still exists when it should be deleted'));
             })
-            .catch(err => {
+            .catch((err) => {
+              expect(err.message).to.be.eql('Token not Found');
               getTokenById(userData.testuser.username)
                 .then((data) => {
                   if (data) {
@@ -161,7 +162,7 @@ describe('Token routes test', () => {
           expect(res.body.Error).not.to.be.eql(undefined);
           verifyToken(userData.testuser.id, usersFixtures.testuser.username)
             .then(done())
-            .catch(err => done(err));
+            .catch((err) => done(err));
         });
     });
 

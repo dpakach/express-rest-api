@@ -9,7 +9,7 @@ const {
   dbCreate, dbRead, dbRemove, dbUpdate, dbReadSelectors,
 } = require('../db');
 const { sanitize } = require('../utils');
-const { validatePassword, getUserByUsername, getUserById } = require('./user');
+const { getUserById } = require('./user');
 
 // create user handler object
 const tokenHandler = {};
@@ -26,7 +26,7 @@ const getTokenById = (id) => {
   }
 
   return dbRead('tokens', id, ['id', 'username', 'user_id', 'expires'])
-    .then(res => res.rows[0]);
+    .then((res) => res.rows[0]);
 };
 
 /**
@@ -38,10 +38,10 @@ tokenHandler.createToken = (userId) => {
   const id = uuid();
   const expires = Date.now() + 60 * 60 * 1000;
   return getUserById(userId)
-  .then(user => dbCreate('tokens', {
-    username: user.username, id, expires, user_id: user.id
-  }))
-  .then(() => getTokenById(id))
+    .then((user) => dbCreate('tokens', {
+      username: user.username, id, expires, user_id: user.id,
+    }))
+    .then(() => getTokenById(id));
 };
 
 /**
@@ -51,7 +51,7 @@ tokenHandler.createToken = (userId) => {
  */
 tokenHandler.extendToken = (id, time = 3600000) => {
   const expires = Date.now() + time;
-  return dbUpdate('tokens', id, { expires })
+  return dbUpdate('tokens', id, { expires });
 };
 
 /**
@@ -59,9 +59,7 @@ tokenHandler.extendToken = (id, time = 3600000) => {
  *
  * @param object data, an object containing user data
  */
-tokenHandler.removeToken = (id) => {
-  return dbRemove('tokens', id)
-};
+tokenHandler.removeToken = (id) => dbRemove('tokens', id);
 
 /**
  * function for verifying the token is valid
@@ -72,39 +70,40 @@ tokenHandler.removeToken = (id) => {
 const verifyToken = (id, user) => {
   const username = sanitize(user, 'string', 6);
   return dbReadSelectors('tokens', { id, username })
-    .then(res => res.rows[0])
-    .then(token => {
-      if(!token) {
-        return Promise.reject('Token not Found')
+    .then((res) => res.rows[0])
+    .then((token) => {
+      if (!token) {
+        return Promise.reject(new Error('Token not Found'));
       }
       if (token.expires < Date.now()) {
-        return Promise.reject('Token already expired')
+        return Promise.reject(new Error('Token already expired'));
       }
-    })
+      return Promise.resolve();
+    });
 };
 
 const authenticate = (req, res, next) => {
   const requestToken = req.headers.token;
-  if(!requestToken) {
+  if (!requestToken) {
     return res.status(403).json({ Error: 'Token not provided' }).end();
   }
-  getTokenById(requestToken)
-    .then(token => {
-      if(!token) {
+  return getTokenById(requestToken)
+    .then((token) => {
+      if (!token) {
         return res.status(403).json({ Error: 'Token doesnot exists!' }).end();
       }
-      verifyToken(requestToken, token.username)
+      return verifyToken(requestToken, token.username)
         .then(() => {
           req.user = token.username;
           req.user_id = token.user_id;
           next();
         }).catch((err) => {
           res.status(403).json({ Error: err }).end();
-        })
+        });
     }).catch(() => {
       res.status(500).json({ Error: 'Could not validate the token' }).end();
     });
-}
+};
 
 // Add local functions for export
 tokenHandler.verifyToken = verifyToken;

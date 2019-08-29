@@ -17,9 +17,7 @@ helpers.dropAllTables = (done) => {
   });
 };
 
-helpers.createTestUser = user => {
-  return createUser(usersFixtures[user])
-    .then((data) => createToken(data.id))
-}
+helpers.createTestUser = (user) => createUser(usersFixtures[user])
+  .then((data) => createToken(data.id));
 
 module.exports = helpers;

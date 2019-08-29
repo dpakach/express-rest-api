@@ -27,7 +27,7 @@ const getUserById = (id) => {
     Promise.reject(new Error('Missing required values.'));
   }
   return dbRead('users', id, ['id', 'username', 'email'])
-    .then(res => res.rows[0]);
+    .then((res) => res.rows[0]);
 };
 
 /**
@@ -41,7 +41,7 @@ const getUserByUsername = (username) => {
     Promise.reject(new Error('Missing required values.'));
   }
   return dbReadSelectors('users', { username }, ['id', 'username', 'email'])
-    .then(res => res.rows[0]);
+    .then((res) => res.rows[0]);
 };
 
 /**
@@ -56,12 +56,12 @@ userHandler.createUser = (data) => {
   const id = uuid();
   password = hash(password);
   if (!(username && password && email && id)) {
-    return Promise.reject('Missing required values.')
+    return Promise.reject(new Error('Missing required values.'));
   }
   return dbCreate('users', {
     id, username, password, email,
   })
-  .then(() => getUserById(id))
+    .then(() => getUserById(id));
 };
 
 /**
@@ -102,12 +102,12 @@ userHandler.changePassword = (id, data) => {
   }
 
   return getUserById(id)
-    .then(user => validatePassword(user.username, oldPassword))
+    .then((user) => validatePassword(user.username, oldPassword))
     .then((id) => {
       password = hash(password);
       oldPassword = hash(oldPassword);
-      return dbUpdateSelector('users', { id, password: oldPassword }, { password })
-    })
+      return dbUpdateSelector('users', { id, password: oldPassword }, { password });
+    });
 };
 
 userHandler.getUserById = getUserById;

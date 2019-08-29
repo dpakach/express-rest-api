@@ -1,10 +1,10 @@
-const {validatePassword} = require('../lib/user.js')
+const { validatePassword } = require('../lib/user.js');
 
 const {
   createToken,
   removeToken,
   extendToken,
-  getTokenById
+  getTokenById,
 } = require('../lib/token');
 const { sanitize } = require('../utils');
 
@@ -19,11 +19,12 @@ tokenController.postToken = (req, res, next) => {
   validatePassword(username, password)
     .then((userId) => {
       createToken(userId)
-        .then(data => {
+        .then((data) => {
           res.status(200).json(data).end();
         }).catch(next);
-    }).catch((error) => {
-      res.status(403).json({Error: 'Could not validate the password'}).end();
+    }).catch((err) => {
+      res.status(403).json({ Error: 'Could not validate the password' }).end();
+      next(err);
     });
 };
 
@@ -31,48 +32,50 @@ tokenController.postToken = (req, res, next) => {
  * Handler for returning one user
  */
 tokenController.getToken = (req, res, next) => {
-  const {id} = req.params
+  const { id } = req.params;
   getTokenById(id)
-    .then(token => {
-      if(!token) {
-        return res.status(404).end();
+    .then((token) => {
+      if (!token) {
+        res.status(404).end();
       }
-      res.status(200).json(token).end();
-    }).catch(next)
+      return res.status(200).json(token).end();
+    }).catch(next);
 };
 
 /**
  * Handler for changing password
  */
 tokenController.deleteToken = (req, res, next) => {
-  const {id} = req.params
+  const { id } = req.params;
   getTokenById(id)
-    .then(token => {
-      if(!token) {
-        return res.status(404).end();
+    .then((token) => {
+      if (!token) {
+        res.status(404).end();
       }
     })
     .then(() => removeToken(id))
     .then(() => {
       res.status(200).end();
-    }).catch(next)
+    })
+    .catch(next);
 };
 
 /**
  * Handler for extending token
  */
 tokenController.putToken = (req, res, next) => {
-  const {id} = req.params
+  const { id } = req.params;
   getTokenById(id)
-    .then(token => {
-      if(!token) {
-        return res.status(404).end();
+    .then((token) => {
+      if (!token) {
+        res.status(404).end();
       }
     })
     .then(() => extendToken(id))
     .then(() => {
       res.status(200).end();
-    }).catch(next)
+    })
+    .catch(next);
 };
 
 // Export the controller
