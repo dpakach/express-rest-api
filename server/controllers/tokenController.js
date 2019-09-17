@@ -36,7 +36,7 @@ tokenController.getToken = (req, res, next) => {
   getTokenById(id)
     .then((token) => {
       if (!token) {
-        res.status(404).end();
+       return res.status(404).end();
       }
       return res.status(200).json(token).end();
     }).catch(next);

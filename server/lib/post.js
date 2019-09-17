@@ -9,8 +9,8 @@ const uuid = require('uuid/v4');
 const {
   dbCreate, dbRemove, dbRead, dbUpdate, dbReadSelectors,
 } = require('../db');
-const { sanitize } = require('../utils');
-const { getUserById } = require('./user');
+const {sanitize} = require('../utils');
+const {getUserById} = require('./user');
 
 // create post handler object
 const postHandler = {};
@@ -64,7 +64,7 @@ const getChildPosts = (postId, limit = 3, depthLimit = 3, depth = 1) => {
   const promises = [];
   let data = [];
 
-  return dbReadSelectors('posts', { parent: id })
+  return dbReadSelectors('posts', {parent: id})
     .then((res) => {
       data = res.rows.slice(0, limit);
       return data.forEach((post, index) => {
@@ -134,7 +134,7 @@ const getPostsForUser = (userId, limit = 3, depth = 0) => {
   if (!user) {
     Promise.reject(new Error('Missing required values.'));
   }
-  return dbReadSelectors('posts', { author: user })
+  return dbReadSelectors('posts', {author: user})
     .then((res) => {
       let data = res.rows;
       data = data.filter((post) => post.parent === null);
@@ -198,7 +198,7 @@ postHandler.updatePost = (postId, data) => {
       title = title || data.title;
       content = content || data.content;
       const modified = String(Date.now());
-      return dbUpdate('posts', post.id, { title, content, modified });
+      return dbUpdate('posts', post.id, {title, content, modified});
     })
     .then(() => getPostById(id));
 };

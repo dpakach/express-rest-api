@@ -2,6 +2,9 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 
+const {notFound, developmentErrors, productionErrors} = require('./server/middlewares');
+const config = require('./config');
+
 const router = require('./server/router');
 
 // Configure the app
@@ -15,12 +18,13 @@ app.use(bodyParser.urlencoded({
 
 // use the router
 app.use('/', router);
+app.use(notFound);
 
-app.use((err, req, res, next) => {
-  console.log(err);
-  res.json({ Error: err }).end();
-  next();
-});
+if (config.app.env === 'dev') {
+  app.use(developmentErrors);
+} else {
+  app.use(productionErrors);
+}
 
 // Export the app
 module.exports = app;
