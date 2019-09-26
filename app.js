@@ -2,7 +2,7 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 
-const {notFound, developmentErrors, productionErrors} = require('./server/middlewares');
+const { notFound, developmentErrors, productionErrors } = require('./server/middlewares');
 const config = require('./config');
 
 const router = require('./server/router');

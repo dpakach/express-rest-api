@@ -33,7 +33,7 @@ test.app.port = parseInt(process.env.TEST_PORT, 10) || 4000;
 test.db.database = process.env.DB_TEST_NAME;
 
 // config object for 'test' environment
-const prod =  getBase();
+const prod = getBase();
 test.app.port = parseInt(process.env.PORT, 10) || 3000;
 test.db.database = process.env.DB_NAME;
 
@@ -41,7 +41,7 @@ test.db.database = process.env.DB_NAME;
 const configs = {
   dev,
   test,
-  prod
+  prod,
 };
 
 // Export the config according to current environment
