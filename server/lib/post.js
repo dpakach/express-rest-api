@@ -3,7 +3,6 @@
  *
  */
 
-// Require dependencies
 const uuid = require('uuid/v4');
 
 const {
@@ -18,7 +17,9 @@ const postHandler = {};
 /**
  * function go get post info from the id
  *
- * @param string id
+ * @param {string} postId
+ *
+ * @return {Promise<Object>}
  */
 const getPostById = (postId) => {
   const id = sanitize(postId, 'string');
@@ -49,12 +50,12 @@ const getPostById = (postId) => {
 /**
  * function to get all child posts (replies) for a post
  *
- * @param string postId
- * @param Number limit  - Limit for number of childs in one level
- * @param Number depthLimit  - Limit for how deep to look for child posts
- * @param Number depth - Recusion depth value for breaking recursion
+ * @param {string} postId
+ * @param {number} limit  - Limit for number of childs in one level
+ * @param {number} depthLimit  - Limit for how deep to look for child posts
+ * @param {number} depth - Recusion depth value for breaking recursion
  *
- * @return Promise
+ * @return {Promise<Object>[]}
  */
 const getChildPosts = (postId, limit = 3, depthLimit = 3, depth = 1) => {
   if (depth > depthLimit) {
@@ -85,11 +86,11 @@ const getChildPosts = (postId, limit = 3, depthLimit = 3, depth = 1) => {
 /**
  * function to get a post with its child posts (replies) for a post
  *
- * @param string postId
- * @param Number limit  - Limit for number of childs in one level
- * @param Number depth  - Limit for how deep to look for child posts
+ * @param {string} postId
+ * @param {Number} limit  - Limit for number of childs in one level
+ * @param {Number} depth  - Limit for how deep to look for child posts
  *
- * @return Promise
+ * @return {Promise<Object>}
  */
 const getPostWithChilds = (postId, limit = 3, depth = 0) => {
   const id = sanitize(postId, 'string');
@@ -125,6 +126,12 @@ const getPostWithChilds = (postId, limit = 3, depth = 0) => {
 
 /**
  * function to get all posts for given user
+ *
+ * @param {string} userId
+ * @param {number} limit
+ * @param {number} depth
+ *
+ * @return {Promise<Object>[]}
  */
 const getPostsForUser = (userId, limit = 3, depth = 0) => {
   const user = sanitize(userId, 'string');
@@ -161,8 +168,10 @@ const getPostsForUser = (userId, limit = 3, depth = 0) => {
 /**
  * Handler for creating post
  *
- * @param object data, an object containing post data
- * @param function callback(status, data)
+ * @param {string} user - the username of the author
+ * @param {Object} data - an object containing post data
+ *
+ * @return {Promise<Object>}
  */
 postHandler.createPost = (user, data) => {
   const author = sanitize(user, 'string', 6);
@@ -184,7 +193,10 @@ postHandler.createPost = (user, data) => {
 /**
  * Handler for editing post
  *
- * @param object data, an object containing post data
+ * @param {string} postId
+ * @param {Object} data - an object containing post data
+ *
+ * @return {Promise<Object>}
  */
 postHandler.updatePost = (postId, data) => {
   const id = sanitize(postId, 'string');
@@ -206,7 +218,9 @@ postHandler.updatePost = (postId, data) => {
 /**
  * Handler for deleting post
  *
- * @param id
+ * @param {string} postId
+ *
+ * @return {Promise}
  */
 postHandler.deletePost = (postId) => {
   const id = sanitize(postId, 'string');

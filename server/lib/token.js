@@ -17,8 +17,9 @@ const tokenHandler = {};
 /**
  * function for returning token by id
  *
- * @param string id
- * @param function callback(err, status, data)
+ * @param {string} id
+ *
+ * @return {Promise<Object>}
  */
 const getTokenById = (id) => {
   if (!id) {
@@ -32,7 +33,9 @@ const getTokenById = (id) => {
 /**
  * Handler for creating token
  *
- * @param object data, an object containing user data
+ * @param {string} userId
+ *
+ * @return {Promise<Object>}
  */
 tokenHandler.createToken = (userId) => {
   const id = uuid();
@@ -47,7 +50,10 @@ tokenHandler.createToken = (userId) => {
 /**
  * Handler for changing password
  *
- * @param object data, an object containing user data
+ * @param {string} id
+ * @param {number} time - time in milliseconds
+ *
+ * @return {Promise<Object>}
  */
 tokenHandler.extendToken = (id, time = 3600000) => {
   const expires = Date.now() + time;
@@ -58,6 +64,8 @@ tokenHandler.extendToken = (id, time = 3600000) => {
  * Handler for deleting password
  *
  * @param object data, an object containing user data
+ *
+ * @return {Promise<Object>}
  */
 tokenHandler.removeToken = (id) => dbRemove('tokens', id);
 
@@ -66,6 +74,8 @@ tokenHandler.removeToken = (id) => dbRemove('tokens', id);
  *
  * @param String id
  * @param String username
+ *
+ * @return {Promise}
  */
 const verifyToken = (id, user) => {
   const username = sanitize(user, 'string', 6);
