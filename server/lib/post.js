@@ -141,18 +141,18 @@ const getPostsForUser = (userId, limit = 3, depth = 0) => {
       if (!data.length) {
         return [];
       }
+      let promise;
       return data.forEach((post, index) => {
-        promises.push(
-          getUserById(post.author)
-            .then((user) => {
-              data[index].author = user;
-            })
-            .then(() => getChildPosts(post.id, limit, depth))
-            .then((child) => {
-              data[index].children = child;
-              return data[index];
-            }),
-        );
+        promise = getUserById(post.author)
+          .then((user) => {
+            data[index].author = user;
+          })
+          .then(() => getChildPosts(post.id, limit, depth))
+          .then((child) => {
+            data[index].children = child;
+            return data[index];
+          });
+        promises.push(promise);
       });
     })
     .then(() => Promise.all(promises));
