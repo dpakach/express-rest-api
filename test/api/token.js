@@ -7,7 +7,7 @@ const server = require('../../start');
 const {
   verifyToken,
   getTokenById,
-} = require('../../server/handlers/tokenHandlers');
+} = require('../../server/lib/token');
 
 const usersFixtures = require('../fixtures/users.json');
 const { createTestUser } = require('../helpers');
@@ -63,13 +63,8 @@ describe('Token routes test', () => {
           expect(res.body).to.haveOwnProperty('id');
           expect(res.body).to.haveOwnProperty('user_id');
           expect(res.body).to.haveOwnProperty('expires');
-          verifyToken(res.body.id, usersFixtures.testuser.username, (err) => {
-            if (!err) {
-              done();
-            } else {
-              done(new Error(JSON.stringify(err)));
-            }
-          });
+          verifyToken(res.body.id, usersFixtures.testuser.username)
+            .then(done()).catch((err) => done(err));
         });
     });
 
@@ -80,7 +75,7 @@ describe('Token routes test', () => {
         .get(`/token/${userData.testuser.id}`)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           done();
         });
     });
@@ -95,7 +90,7 @@ describe('Token routes test', () => {
         .set('token', userData.testuser.id)
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body).to.be.eql('');
+          expect(res.body).to.be.eql({});
           getTokenById(userData.testuser.id)
             .then((data) => {
               expect(Number.parseInt(data.expires, 10)).to.be.greaterThan(
@@ -115,7 +110,7 @@ describe('Token routes test', () => {
         .put(`/token/${userData.testuser.id}`)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           getTokenById(userData.testuser.id)
             .then((data) => {
               expect(Number.parseInt(data.expires, 10)).to.be.lessThan(
@@ -137,9 +132,13 @@ describe('Token routes test', () => {
         .set('token', userData.testuser.id)
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body).to.be.eql('');
-          verifyToken(res.body.id, usersFixtures.testuser.username, (err) => {
-            if (err) {
+          expect(res.body).to.be.eql({});
+          verifyToken(res.body.id, usersFixtures.testuser.username)
+            .then(() => {
+              done(new Error('Token still exists when it should be deleted'));
+            })
+            .catch((err) => {
+              expect(err.message).to.be.eql('Token not Found');
               getTokenById(userData.testuser.username)
                 .then((data) => {
                   if (data) {
@@ -150,10 +149,7 @@ describe('Token routes test', () => {
                     done();
                   }
                 });
-            } else {
-              done(new Error('Token still exists when it should be deleted'));
-            }
-          });
+            });
         });
     });
 
@@ -163,18 +159,10 @@ describe('Token routes test', () => {
         .delete(`/token/${userData.testuser.id}`)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
-          verifyToken(
-            userData.testuser.id,
-            usersFixtures.testuser.username,
-            (err) => {
-              if (!err) {
-                done();
-              } else {
-                done(new Error('Token should exist but not found'));
-              }
-            },
-          );
+          expect(res.body.Error).not.to.be.eql(undefined);
+          verifyToken(userData.testuser.id, usersFixtures.testuser.username)
+            .then(done())
+            .catch((err) => done(err));
         });
     });
 
@@ -185,7 +173,6 @@ describe('Token routes test', () => {
         .set('token', userData.testuser.id)
         .end((err, res) => {
           expect(res.status).to.be.eql(404);
-          expect(res.body.Error).not.to.be.eql(undefined);
           done();
         });
     });

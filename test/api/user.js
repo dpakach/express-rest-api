@@ -10,7 +10,7 @@ const { query } = require('../../server/db');
 const {
   getUserByUsername,
   validatePassword,
-} = require('../../server/handlers/userHandler');
+} = require('../../server/lib/user');
 
 const usersFixtures = require('../fixtures/users.json');
 const { createTestUser } = require('../helpers');
@@ -37,7 +37,7 @@ describe('User routes test', () => {
         .send(usersFixtures.testuser2)
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body).to.be.eqls(false);
+          expect(res.body).to.be.eqls({});
           getUserByUsername(usersFixtures.testuser2.username)
             .then((data) => {
               expect(data.username).to.be.eql(usersFixtures.testuser2.username);
@@ -72,7 +72,7 @@ describe('User routes test', () => {
         .get(`/user/${userData.testuser.user_id}`)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           done();
         });
     });
@@ -121,6 +121,7 @@ describe('User routes test', () => {
                 .set('token', data.rows[0].id)
                 .end((err, res) => {
                   expect(res.status).to.be.eql(403);
+                  expect(res.body.Error).not.to.be.eql(undefined);
                   expect(res.body.username).to.be.eql(undefined);
                   expect(res.body.email).to.be.eql(undefined);
                   expect(res.body.id).to.be.eql(undefined);
@@ -163,7 +164,7 @@ describe('Password routes test', () => {
         })
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body).to.be.eql('');
+          expect(res.body).to.be.eql({});
           validatePassword(userData.testuser.username, newPassword)
             .then(() => done())
             .catch((err) => {
@@ -183,7 +184,7 @@ describe('Password routes test', () => {
         })
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           validatePassword(userData.testuser.username, newPassword)
             .then(() => {
               done(new Error('Password changed when it was expected not to'));
@@ -206,7 +207,7 @@ describe('Password routes test', () => {
         })
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           validatePassword(userData.testuser.username, newPassword)
             .then(() => {
               done(new Error('Password changed when it was expected not to'));
@@ -229,7 +230,7 @@ describe('Password routes test', () => {
         })
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           validatePassword(userData.testuser.username, newPassword)
             .then(() => {
               done(new Error('Password changed when it was expected not to'));
@@ -251,7 +252,7 @@ describe('Password routes test', () => {
         })
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           validatePassword(userData.testuser.username, newPassword)
             .then(() => {
               done(new Error('Password changed when it was expected not to'));

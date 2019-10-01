@@ -9,10 +9,10 @@ const assert = require('assert');
 const chai = require('chai');
 
 const utils = require('../../server/utils');
-const { verifyToken, getTokenById } = require('../../server/handlers/tokenHandlers');
+const { verifyToken, getTokenById } = require('../../server/lib/token');
 const {
   getUserById, getUserByUsername, validatePassword,
-} = require('../../server/handlers/userHandler');
+} = require('../../server/lib/user');
 const usersFixtures = require('../fixtures/users.json');
 const { createTestUser } = require('../helpers');
 
@@ -76,34 +76,38 @@ describe('Token related functions should work', () => {
   });
 
   it('Verify Token Should not give error on using correct token', (done) => {
-    verifyToken(userData.testuser.id, usersFixtures.testuser.username, (err) => {
-      expect(err).to.be.eql(false);
-      done();
-    });
+    verifyToken(userData.testuser.id, usersFixtures.testuser.username)
+      .then(done()).catch((err) => done(err));
   });
 
   it('Verify Token Should give error on using incorrect token', (done) => {
-    verifyToken('invalid token', usersFixtures.testuser.username, (err) => {
-      expect(err).not.to.be.eql(false);
-      expect(err).to.be.a('string');
-      done();
-    });
+    verifyToken('invalid token', usersFixtures.testuser.username)
+      .then(() => {
+        done(new Error('Token verified when it was expected not to.'));
+      }).catch((err) => {
+        expect(err.message).to.be.eql('Token not Found');
+        done();
+      });
   });
 
   it('Verify Token Should give error on using incorrect username', (done) => {
-    verifyToken(userData.testuser.id, 'invalid_username', (err) => {
-      expect(err).not.to.be.eql(false);
-      expect(err).to.be.a('string');
-      done();
-    });
+    verifyToken(userData.testuser.id, 'invalid_username')
+      .then(() => {
+        done(new Error('Token verified when it was expected not to.'));
+      }).catch((err) => {
+        expect(err.message).to.be.eql('Token not Found');
+        done();
+      });
   });
 
   it('Verify Token Should give error on using incorrect username and token', (done) => {
-    verifyToken('invalid_token', 'invalid_username', (err) => {
-      expect(err).not.to.be.eql(false);
-      expect(err).to.be.a('string');
-      done();
-    });
+    verifyToken('invalid_token', 'invalid_username')
+      .then(() => {
+        done(new Error('Token verified when it was expected not to.'));
+      }).catch((err) => {
+        expect(err.message).to.be.eql('Token not Found');
+        done();
+      });
   });
 
   it('Get token by Id should work on using correct token', (done) => {

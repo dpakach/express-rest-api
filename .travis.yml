@@ -19,6 +19,7 @@ addons:
 env:
   global:
   - PGPORT=5432
+  - NODE_ENV=test
 
 install:
   - npm install
@@ -26,10 +27,10 @@ install:
 
 before_script:
   - psql -c 'create database clearn_test;' -U postgres
+  - systemctl status postgresql
   - db-migrate up -e test
 
 script:
-  - npm audit
   - npm run lint
   - npm run test:coverage
   - codecov

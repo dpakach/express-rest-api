@@ -6,7 +6,7 @@ const server = require('../../start');
 const {
   createPost,
   getPostById,
-} = require('../../server/handlers/postHandler');
+} = require('../../server/lib/post');
 
 const { createTestUser } = require('../helpers');
 
@@ -59,12 +59,12 @@ describe('Post routes test', () => {
         .post('/post')
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           done();
         });
     });
 
-    it('It should not be possible to create post witout title', (done) => {
+    it('It should not be possible to create post without title', (done) => {
       chai
         .request(server)
         .post('/post')
@@ -77,7 +77,7 @@ describe('Post routes test', () => {
         });
     });
 
-    it('It should not be possible to create post witout content', (done) => {
+    it('It should not be possible to create post without content', (done) => {
       chai
         .request(server)
         .post('/post')
@@ -100,14 +100,13 @@ describe('Post routes test', () => {
 
     getPostData = {};
     beforeEach((done) => {
-      createPost(userData.testuser.user_id, postData, (status, err, data) => {
-        if (status === 200 && !err && data) {
+      createPost(userData.testuser.user_id, postData)
+        .then((data) => {
           getPostData = data;
           done();
-        } else {
-          done(new Error(err.Error));
-        }
-      });
+        }).catch((err) => {
+          done(err);
+        });
     });
 
     it('It should be possible to get post', (done) => {
@@ -138,7 +137,7 @@ describe('Post routes test', () => {
         .get(`/post/${getPostData.id}`)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           done();
         });
     });
@@ -171,14 +170,13 @@ describe('Post routes test', () => {
 
     getPostData = {};
     beforeEach((done) => {
-      createPost(userData.testuser.user_id, postData, (status, err, data) => {
-        if (status === 200 && !err && data) {
+      createPost(userData.testuser.user_id, postData)
+        .then((data) => {
           getPostData = data;
           done();
-        } else {
-          done(new Error(err.Error));
-        }
-      });
+        }).catch((err) => {
+          done(err);
+        });
     });
     it('It should be possible to update post', (done) => {
       requestTime = Date.now();
@@ -215,7 +213,7 @@ describe('Post routes test', () => {
         .send(newPostData)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           done();
         });
     });
@@ -228,7 +226,7 @@ describe('Post routes test', () => {
         .set({ token: userData.testuser.id })
         .end((err, res) => {
           expect(res.status).to.be.eql(404);
-          expect(res.body.Error).not.to.be.eql(undefined);
+          expect(res.body.Error).to.be.eql(undefined);
           done();
         });
     });
@@ -243,17 +241,16 @@ describe('Post routes test', () => {
 
     getPostData = {};
     beforeEach((done) => {
-      createPost(userData.testuser.user_id, postData, (status, err, data) => {
-        if (status === 200 && !err && data) {
+      createPost(userData.testuser.user_id, postData)
+        .then((data) => {
           getPostData = data;
           done();
-        } else {
-          done(new Error(err.Error));
-        }
-      });
+        }).catch((err) => {
+          done(err);
+        });
     });
     requestTime = Date.now();
-    it('It should be possible to update post', (done) => {
+    it('It should be possible to delete post', (done) => {
       chai
         .request(server)
         .delete(`/post/${getPostData.id}`)
@@ -261,7 +258,7 @@ describe('Post routes test', () => {
         .set({ token: userData.testuser.id })
         .end((err, res) => {
           expect(res.status).to.be.eql(200);
-          expect(res.body).to.be.eql(false);
+          expect(res.body).to.be.eql({});
           getPostById(getPostData.id)
             .then((data) => {
               expect(data).to.be.eql(undefined);
@@ -278,7 +275,7 @@ describe('Post routes test', () => {
         .delete(`/post/${getPostData.id}`)
         .end((err, res) => {
           expect(res.status).to.be.eql(403);
-          expect(res.body).to.be.eql({});
+          expect(res.body.Error).not.to.be.eql(undefined);
           done();
         });
     });
@@ -290,7 +287,7 @@ describe('Post routes test', () => {
         .set({ token: userData.testuser.id })
         .end((err, res) => {
           expect(res.status).to.be.eql(404);
-          expect(res.body.Error).not.to.be.eql(undefined);
+          expect(res.body).to.be.eql({});
           done();
         });
     });
