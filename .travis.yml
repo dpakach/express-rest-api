@@ -29,7 +29,6 @@ before_script:
   - db-migrate up -e test
 
 script:
-  - npm audit
   - npm run lint
   - npm run test:coverage
   - codecov
