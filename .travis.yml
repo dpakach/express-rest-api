@@ -19,7 +19,6 @@ addons:
 env:
   global:
   - PGPORT=5432
-  - NODE_ENV=test
 
 install:
   - npm install
