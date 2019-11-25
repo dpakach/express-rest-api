@@ -11,6 +11,7 @@ const helpers = {};
  *
  * @param {callback} done
  *
+ * @return {void}
  */
 helpers.dropAllTables = (done) => {
   const queryText = 'TRUNCATE TABLE users, tokens, posts;';

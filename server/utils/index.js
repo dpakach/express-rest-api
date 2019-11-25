@@ -6,7 +6,7 @@ const config = require('../../config');
  *
  * @param {string} str
  *
- * @return {string}
+ * @return {string|boolean}
  */
 exports.hash = (str) => {
   if (typeof str === 'string' && str.length > 0) {
@@ -21,6 +21,8 @@ exports.hash = (str) => {
  * @param {string} value - the value of the variable
  * @param {string} type - the type that the value should fulfill
  * @param {number} minLen - For strings, the minimum length of the string
+ *
+ * @return {string|boolean}
  */
 exports.sanitize = (value, type, minLen = null) => {
   if (

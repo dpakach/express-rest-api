@@ -5,16 +5,23 @@ const { db } = require('../../config');
 const pool = new Pool(db);
 
 const dbHandler = {
+  /**
+   * Run a database query
+   *
+   * @param {string} tableName
+   * @param {params} Array
+   * @param {callback} callback function
+   */
   query: (text, params, callback) => pool.query(text, params, callback),
 };
 
 /**
  * dbHandler for creating an object
  *
- * @param string tableName
- * @param Object data
+ * @param {string} tableName
+ * @param {Object} data
  *
- * @return Promise
+ * @return {Promise<Object>}
  */
 dbHandler.dbCreate = function (tableName, data) {
   const keys = Object.keys(data).join(',');
@@ -27,10 +34,10 @@ dbHandler.dbCreate = function (tableName, data) {
 /**
  * dbHandler for deleting an object
  *
- * @param string tableName
- * @param string id
+ * @param {string} tableName
+ * @param {string} id
  *
- * @return Promise
+ * @return {Promise<Object>}
  */
 dbHandler.dbRemove = function (tableName, id) {
   const queryText = `DELETE FROM "${tableName}" WHERE id LIKE $1;`;
@@ -40,11 +47,11 @@ dbHandler.dbRemove = function (tableName, id) {
 /**
  * dbHandler for updating an object
  *
- * @param string tableName
- * @param string id
- * @param Object data
+ * @param {string} tableName
+ * @param {string} id
+ * @param {Object} data
  *
- * @return Promise
+ * @return {Promise<Object>}
  */
 dbHandler.dbUpdate = function (tableName, id, data) {
   const values = Object.keys(data).map((k) => data[k]);
@@ -56,11 +63,11 @@ dbHandler.dbUpdate = function (tableName, id, data) {
 /**
  * dbHandler for updating an object with multiple selectors
  *
- * @param string tableName
- * @param Object selectors
- * @param Object data
+ * @param {string} tableName
+ * @param {Object} selectors
+ * @param {Object} data
  *
- * @return Promise
+ * @return {Promise<Object>}
  */
 dbHandler.dbUpdateSelector = function (tableName, selectors, data) {
   const updateValues = Object.keys(data).map((k) => data[k]);
@@ -74,11 +81,11 @@ dbHandler.dbUpdateSelector = function (tableName, selectors, data) {
 /**
  * dbHandler for reading an object
  *
- * @param string tableName
- * @param string id
- * @param Array values
+ * @param {string} tableName
+ * @param {string} id
+ * @param {Array} values
  *
- * @return Promise
+ * @return {Promise<Object>}
  */
 dbHandler.dbRead = function (tableName, id, values) {
   let queryValues = '';
@@ -94,11 +101,11 @@ dbHandler.dbRead = function (tableName, id, values) {
 /**
  * dbHandler for reading an object with multiple selectors
  *
- * @param string tableName
- * @param Object selectors
- * @param Array values
+ * @param {string} tableName
+ * @param {Object} selectors
+ * @param {Array} values
  *
- * @return Promise
+ * @return {Promise<Object>}
  */
 dbHandler.dbReadSelectors = function (tableName, selectors, values) {
   let queryValues = '';
