@@ -1,70 +1,90 @@
 const {
+  getPostById,
   createPost,
-  getPostHandler,
-  deletePost,
   updatePost,
-  getPosts,
-} = require('../handlers/postHandler');
+  deletePost,
+  getPostsForUser,
+  getPostWithChilds,
+} = require('../lib/post');
+const { sanitize } = require('../utils');
 
 const postController = {};
 
 /**
  * Handler for creating post
  */
-postController.postPost = (req, res) => {
-  createPost(req.user_id, req.body, (status = 200, err, data) => {
-    if (!err) {
-      res.status(status).json(data).end();
-    } else {
-      res.status(status).json(err).end();
-    }
-  });
+postController.postPost = (req, res, next) => {
+  const data = req.body;
+  const title = sanitize(data.title, 'string');
+  const content = sanitize(data.content, 'string');
+  const parent = sanitize(data.parent, 'string');
+
+  if (!(title && content)) {
+    res.status(400).json({ Error: 'missing required values' }).end();
+  } else {
+    createPost(req.user_id, { title, content, parent })
+      .then((data) => {
+        res.status(200).json(data).end();
+      }).catch(next);
+  }
 };
 
 /**
  * Handler getting all posts by a user
  */
-postController.getPosts = (req, res) => {
-  getPosts(req.user_id, (status = 200, data) => {
-    res.status(status).json(data).end();
-  });
+postController.getPosts = (req, res, next) => {
+  const depth = Number(req.query.depth) || 0;
+  const limit = Number(req.query.limit) || 3;
+  getPostsForUser(req.user_id, limit, depth)
+    .then((data) => {
+      res.status(400).json(data).end();
+    }).catch(next);
 };
 
 /**
  * Handler for returning one post
  */
-postController.getPost = (req, res) => {
+postController.getPost = (req, res, next) => {
   const depth = Number(req.query.depth) || 0;
   const limit = Number(req.query.limit) || 3;
-  getPostHandler(req.params.id, depth, limit, (status = 200, data) => {
-    if (req.post === data.postname) {
-      res.status(status).json(data).end();
-    } else {
-      res.status(404).end();
-    }
-  });
+  getPostWithChilds(req.params.id, depth, limit)
+    .then((post) => {
+      if (!post) {
+        return res.status(404).end();
+      }
+      return res.status(200).json(post).end();
+    })
+    .catch(next);
 };
 
 /**
  * Handler for updating post
  */
-postController.putPost = (req, res) => {
-  updatePost(req.params.id, req.body, (status = 200, err, data) => {
-    if (!err) {
-      res.status(status).json(data).end();
-    } else {
-      res.status(status).json(err).end();
-    }
-  });
+postController.putPost = (req, res, next) => {
+  getPostById(req.params.id)
+    .then((post) => {
+      if (!post) {
+        return res.status(404).end();
+      }
+      return updatePost(req.params.id, req.body)
+        .then((data) => res.status(200).json(data).end());
+    })
+    .catch(next);
 };
 
 /**
  * Handler for updating post
  */
-postController.deletePost = (req, res) => {
-  deletePost(req.params.id, (status = 200, data) => {
-    res.status(status).json(data).end();
-  });
+postController.deletePost = (req, res, next) => {
+  getPostById(req.params.id)
+    .then((post) => {
+      if (!post) {
+        return res.status(404).end();
+      }
+      return deletePost(req.params.id)
+        .then(() => res.status(200).end());
+    })
+    .catch(next);
 };
 
 // Export the controller
