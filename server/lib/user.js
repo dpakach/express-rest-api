@@ -1,8 +1,6 @@
 /**
  * Handler for user related features
  *
- * @TODO use tokens to verify only the verified users can view and modify user data
- *
  */
 
 // Require dependencies
@@ -19,8 +17,9 @@ const userHandler = {};
 /**
  * function go get user info from the id
  *
- * @param string id
- * @param function callback(error, data)
+ * @param {string} id
+ *
+ * @return {Promise<Object>}
  */
 const getUserById = (id) => {
   if (!id) {
@@ -33,8 +32,9 @@ const getUserById = (id) => {
 /**
  * function go get user info from the username
  *
- * @param string username
- * @param function callback(error, data)
+ * @param {string} username
+ *
+ * @return {Promise<Object>}
  */
 const getUserByUsername = (username) => {
   if (!username) {
@@ -47,7 +47,9 @@ const getUserByUsername = (username) => {
 /**
  * Handler for creating user
  *
- * @param object data, an object containing user data
+ * @param {Object} data
+ *
+ * @return {Promise<Object>}
  */
 userHandler.createUser = (data) => {
   const username = sanitize(data.username, 'string', 6);
@@ -67,9 +69,10 @@ userHandler.createUser = (data) => {
 /**
  * validate password of user
  *
- * @param String username
- * @param String userPassword
- * @param function callback
+ * @param {string} username
+ * @param {string} userPassword
+ *
+ * @return {Promise<Object>}
  */
 const validatePassword = (username, userPassword) => {
   let password = sanitize(userPassword, 'string', 6);
@@ -92,7 +95,10 @@ const validatePassword = (username, userPassword) => {
 /**
  * Handler for changing password
  *
- * @param object data, an object containing user data
+ * @param {string} id
+ * @param {Object} data
+ *
+ * @return {Promise<Object>}
  */
 userHandler.changePassword = (id, data) => {
   let password = sanitize(data.newPassword, 'string', 6);
