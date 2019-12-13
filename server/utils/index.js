@@ -8,9 +8,10 @@ const config = require('../../config');
  *
  * @return {string|boolean}
  */
-exports.hash = (str) => {
-  if (typeof str === 'string' && str.length > 0) {
-    return crypto.createHmac('sha256', config.app.secret).update(str).digest('hex');
+exports.hash = (str, salt) => {
+  const saltValue = salt || config.app.secret;
+  if (typeof str === 'string' && typeof saltValue === 'string' && str.length > 0) {
+    return crypto.createHmac('sha256', saltValue).update(str).digest('hex');
   }
   return false;
 };
