@@ -37,6 +37,10 @@ exports.up = (db, callback) => {
           type: 'string',
           length: 256,
         },
+        salt: {
+          type: 'string',
+          length: 256,
+        },
         email: {
           type: 'string',
           length: 64,

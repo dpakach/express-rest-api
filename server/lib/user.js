@@ -56,12 +56,13 @@ userHandler.createUser = (data) => {
   const email = sanitize(data.email, 'string', 6);
   let password = sanitize(data.password, 'string', 6);
   const id = uuid();
-  password = hash(password);
-  if (!(username && password && email && id)) {
+  const salt = uuid();
+  password = hash(password, salt);
+  if (!(username && password && email && id && salt)) {
     return Promise.reject(new Error('Missing required values.'));
   }
   return dbCreate('users', {
-    id, username, password, email,
+    id, username, password, email, salt,
   })
     .then(() => getUserById(id));
 };
@@ -75,16 +76,21 @@ userHandler.createUser = (data) => {
  * @return {Promise<Object>}
  */
 const validatePassword = (username, userPassword) => {
-  let password = sanitize(userPassword, 'string', 6);
-  password = hash(password);
+  const password = sanitize(userPassword, 'string', 6);
   if (!username || !password) {
     return Promise.reject(new Error('Missing required values'));
   }
+
   return new Promise((resolve, reject) => {
-    dbReadSelectors('users', { username, password }, ['id'])
+    dbReadSelectors('users', { username }, ['salt', 'id', 'password'])
       .then((res) => {
         if (res.rows.length) {
-          resolve(res.rows[0].id);
+          const user = res.rows[0];
+          const passwordHash = hash(password, user.salt);
+          if (passwordHash !== user.password) {
+            reject(new Error('Could not validate given username and password'));
+          }
+          resolve(user.id);
         } else {
           reject(new Error('Could not validate given username and password'));
         }
@@ -102,7 +108,7 @@ const validatePassword = (username, userPassword) => {
  */
 userHandler.changePassword = (id, data) => {
   let password = sanitize(data.newPassword, 'string', 6);
-  let oldPassword = sanitize(data.password, 'string', 6);
+  const oldPassword = sanitize(data.password, 'string', 6);
   if (!(id && password && oldPassword)) {
     return Promise.reject(new Error('Missing required values'));
   }
@@ -110,9 +116,9 @@ userHandler.changePassword = (id, data) => {
   return getUserById(id)
     .then((user) => validatePassword(user.username, oldPassword))
     .then((id) => {
-      password = hash(password);
-      oldPassword = hash(oldPassword);
-      return dbUpdateSelector('users', { id, password: oldPassword }, { password });
+      const newSalt = uuid();
+      password = hash(password, newSalt);
+      return dbUpdateSelector('users', { id }, { password, salt: newSalt });
     });
 };
 
